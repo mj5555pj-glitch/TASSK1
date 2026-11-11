@@ -1,0 +1,6 @@
+{
+  "name": "نظام إرسال وتوجيه مهام صيانة الإنترنت",
+  "description": "منصة متكاملة لإرسال ومتابعة مهام صيانة الإنترنت للفنيين الميدانيين مع تتبع الأوقات والاتصال والواتساب الفوري وحفظ السجلات لمدة أسبوع.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

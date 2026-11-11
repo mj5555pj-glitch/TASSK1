@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "Task": {
+      "title": "MaintenanceTask",
+      "description": "An internet maintenance task dispatched to a field technician",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "taskNumber": { "type": "string" },
+        "taskType": {
+          "type": "string",
+          "enum": ["صيانة", "تنصيب", "ضعف", "مشاكل اخرى"]
+        },
+        "subscriberName": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "assignedToId": { "type": "string" },
+        "assignedToName": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "acceptedAt": { "type": "string" },
+        "completedAt": { "type": "string" },
+        "durationSeconds": { "type": "number" },
+        "durationFormatted": { "type": "string" },
+        "completionNotes": { "type": "string", "maxLength": 1000 },
+        "expiresAt": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed"]
+        }
+      },
+      "required": ["taskNumber", "taskType", "subscriberName", "phone", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Collection of dispatched ISP maintenance tasks"
+    }
+  }
+}
