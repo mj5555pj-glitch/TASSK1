@@ -35,6 +35,7 @@ export const DispatchPage: React.FC<Props> = ({
   const [subscriberName, setSubscriberName] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
+  const [dispatchTarget, setDispatchTarget] = useState<'all' | 'specific'>('all');
   const [assignedTechId, setAssignedTechId] = useState(technicians[0]?.id || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +55,10 @@ export const DispatchPage: React.FC<Props> = ({
       return;
     }
 
-    const assignedTech = technicians.find((t) => t.id === assignedTechId) || technicians[0];
+    const isAssignedToAll = dispatchTarget === 'all';
+    const assignedTech = isAssignedToAll 
+      ? { id: 'all', fullName: 'متاحة للكل (يمكن لأي فني نسبها لنفسه)' }
+      : (technicians.find((t) => t.id === assignedTechId) || technicians[0]);
 
     try {
       setIsSubmitting(true);
@@ -70,7 +74,11 @@ export const DispatchPage: React.FC<Props> = ({
       setSubscriberName('');
       setPhone('');
       setNotes('');
-      setSuccessToast(`تم إرسال المهمة وحفظها في قاعدة بيانات فايبر بيس وتكليف الفني (${assignedTech.fullName}) بنجاح!`);
+      setSuccessToast(
+        isAssignedToAll 
+          ? 'تم إرسال المهمة للكل بنجاح! سيصل إشعار فوري لكافة الفنيين ويمكن لأي فني قبولها ونسبها لنفسه.'
+          : `تم إرسال المهمة وتكليف الفني (${assignedTech.fullName}) وتوجيه إشعار فوري لجسابه بنجاح!`
+      );
       setTimeout(() => setSuccessToast(null), 5000);
     } catch (err) {
       setError('حدث خطأ أثناء حفظ المهمة في فايبر بيس، يرجى المحاولة مرة أخرى.');
@@ -218,22 +226,77 @@ export const DispatchPage: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* توجيه إلى الفني */}
-          <div>
-            <label className="block text-xs font-bold text-slate-200 mb-1.5">
-              توجيه المهمة إلى الفني المكلف <span className="text-red-400">*</span>
+          {/* خيار إرسال المهمة للكل بحيث يمكن لأي فني نسبها لنفسه أو تحديد فني */}
+          <div className="space-y-3">
+            <label className="block text-xs font-bold text-slate-200">
+              توجيه المهمة والتكليف <span className="text-red-400">*</span>
             </label>
-            <select
-              value={assignedTechId}
-              onChange={(e) => setAssignedTechId(e.target.value)}
-              className="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500"
-            >
-              {technicians.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.fullName} — {t.specialty || 'فني صيانة شبكات'} (هاتف: {t.phone})
-                </option>
-              ))}
-            </select>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDispatchTarget('all')}
+                className={`p-3.5 rounded-xl border text-right transition-all flex items-start gap-3 ${
+                  dispatchTarget === 'all'
+                    ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-md ring-2 ring-emerald-500/30'
+                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="w-5 h-5 rounded-full border border-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  {dispatchTarget === 'all' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                    <span>📢 إرسال المهمة للكل (متاحة لجميع الفنيين)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 leading-normal">
+                    يصل إشعار فوري لكافة الفنيين، وتظهر في بطاقة الانتظار بحيث يمكن لأي فني قبولها ونسبها لنفسه فوراً.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDispatchTarget('specific')}
+                className={`p-3.5 rounded-xl border text-right transition-all flex items-start gap-3 ${
+                  dispatchTarget === 'specific'
+                    ? 'bg-blue-600/20 border-blue-500 text-white shadow-md ring-2 ring-blue-500/30'
+                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="w-5 h-5 rounded-full border border-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                  {dispatchTarget === 'specific' && <div className="w-2.5 h-2.5 rounded-full bg-blue-400" />}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                    <span>👤 تحديد فني معين للمهمة</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 leading-normal">
+                    إرسال المهمة حصراً لفني محدد بالاسم وتكليفه بالمهمة مباشرة.
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* Dropdown if specific technician selected */}
+            {dispatchTarget === 'specific' && (
+              <div className="mt-2 animate-in fade-in">
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  اختر الفني المكلف من القائمة:
+                </label>
+                <select
+                  value={assignedTechId}
+                  onChange={(e) => setAssignedTechId(e.target.value)}
+                  className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                >
+                  {technicians.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      الفني: {t.fullName} — {t.specialty || 'فني صيانة شبكات'} (هاتف: {t.phone})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* ملاحظات فقط */}

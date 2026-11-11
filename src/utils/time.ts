@@ -137,3 +137,33 @@ export function getRetentionCountdown(createdAtIso: string): string {
     return 'سجل أسبوعي';
   }
 }
+
+/**
+ * Checks if a pending task has exceeded threshold minutes (default 15 mins) without being accepted
+ */
+export function isTaskUnacceptedOverdue(
+  createdAtIso: string,
+  thresholdMinutes: number = 15,
+  currentTime: number = Date.now()
+): boolean {
+  try {
+    const created = new Date(createdAtIso).getTime();
+    if (isNaN(created)) return false;
+    return (currentTime - created) >= thresholdMinutes * 60 * 1000;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns elapsed minutes since task creation
+ */
+export function getElapsedMinutes(createdAtIso: string, currentTime: number = Date.now()): number {
+  try {
+    const created = new Date(createdAtIso).getTime();
+    if (isNaN(created)) return 0;
+    return Math.max(0, Math.floor((currentTime - created) / (60 * 1000)));
+  } catch {
+    return 0;
+  }
+}

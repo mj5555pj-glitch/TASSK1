@@ -7,6 +7,7 @@ import {
 } from '../utils/time';
 import { getTelUrl } from '../utils/whatsapp';
 import { WhatsAppPreviewModal } from './WhatsAppPreviewModal';
+import { NotificationSettingsBanner } from './NotificationSettingsBanner';
 import { 
   Phone, 
   MessageSquare, 
@@ -156,6 +157,9 @@ export const TechnicianView: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* Push Notification Setup & Test Banner */}
+      <NotificationSettingsBanner />
 
       {/* Tabs Navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-800">
@@ -419,10 +423,18 @@ export const TechnicianView: React.FC<Props> = ({
                       type="button"
                       disabled={actionLoading}
                       onClick={() => handleAccept(task.id)}
-                      className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/30 disabled:opacity-50"
+                      className={`w-full py-2.5 px-4 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 ${
+                        task.assignedToId === 'all'
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-950/40 ring-1 ring-emerald-400/30'
+                          : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/30'
+                      }`}
                     >
                       <Play className="w-4 h-4" />
-                      <span>قبول المهمة والبدء الآن</span>
+                      <span>
+                        {task.assignedToId === 'all'
+                          ? '✨ قبول المهمة ونسبها لنفسي والبدء الآن'
+                          : 'قبول المهمة وبدء التحرك الآن'}
+                      </span>
                     </button>
                   )}
 

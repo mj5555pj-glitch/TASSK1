@@ -84,3 +84,31 @@ export function playSuccessSound() {
     console.warn('Audio feedback failed:', e);
   }
 }
+
+/**
+ * Plays an urgent 3-tone warning chime for manager when tasks exceed 15 mins without acceptance
+ */
+export function playOverdueAlertSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    
+    // 3 urgent alert pulses
+    [0, 0.18, 0.36].forEach((offset, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(idx === 2 ? 880 : 660, now + offset);
+      gain.gain.setValueAtTime(0.18, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.14);
+    });
+  } catch (e) {
+    console.warn('Overdue audio alert failed:', e);
+  }
+}

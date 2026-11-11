@@ -249,16 +249,122 @@ export async function addTaskToFirebase(taskData: {
   }
 }
 
+const USERS_COLLECTION = 'users';
+
 /**
- * Accept task in Firebase (Records accept time and updates status to in_progress)
+ * Subscribe to users / technicians collection in Firestore with robust fallback
  */
-export async function acceptTaskInFirebase(taskId: string): Promise<void> {
+export function subscribeToFirestoreUsers(
+  onUpdate: (users: import('./types').User[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const usersRef = collection(db, USERS_COLLECTION);
+
+  return onSnapshot(
+    usersRef,
+    async (snapshot) => {
+      const { DEFAULT_USERS } = await import('./utils/storage');
+
+      if (snapshot.empty) {
+        // Immediately provide default users so login NEVER fails
+        onUpdate(DEFAULT_USERS);
+
+        // Seed default users to Firestore
+        try {
+          for (const u of DEFAULT_USERS) {
+            await setDoc(doc(db, USERS_COLLECTION, u.id), u);
+          }
+        } catch (e) {
+          console.warn('Could not seed default users to Firestore:', e);
+        }
+        return;
+      }
+
+      const users: import('./types').User[] = [];
+      snapshot.forEach((docSnap) => {
+        users.push(docSnap.data() as import('./types').User);
+      });
+
+      // Always guarantee the manager account exists
+      const hasAdmin = users.some((u) => u.username.toLowerCase() === 'admin');
+      if (!hasAdmin && DEFAULT_USERS.length > 0) {
+        users.unshift(DEFAULT_USERS[0]);
+        // Also persist admin back to Firestore
+        setDoc(doc(db, USERS_COLLECTION, DEFAULT_USERS[0].id), DEFAULT_USERS[0]).catch(() => {});
+      }
+
+      onUpdate(users);
+    },
+    (error) => {
+      console.error('Firestore users onSnapshot error:', error);
+      import('./utils/storage').then(({ DEFAULT_USERS }) => {
+        onUpdate(DEFAULT_USERS);
+      });
+      if (onError) onError(error);
+      handleFirestoreError(error, OperationType.GET, USERS_COLLECTION);
+    }
+  );
+}
+
+/**
+ * Add or update user / technician account in Firestore
+ */
+export async function saveUserToFirebase(user: import('./types').User): Promise<void> {
+  try {
+    await setDoc(doc(db, USERS_COLLECTION, user.id), user, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `${USERS_COLLECTION}/${user.id}`);
+    throw error;
+  }
+}
+
+/**
+ * Delete a user / technician from Firestore
+ */
+export async function deleteUserFromFirebase(userId: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, USERS_COLLECTION, userId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${USERS_COLLECTION}/${userId}`);
+    throw error;
+  }
+}
+
+/**
+ * Accept task in Firebase (Records accept time and claims task for technician if it was assigned to all)
+ */
+export async function acceptTaskInFirebase(
+  taskId: string,
+  technician?: { id: string; fullName: string }
+): Promise<void> {
   const nowIso = new Date().toISOString();
   try {
     const taskDocRef = doc(db, TASKS_COLLECTION, taskId);
-    await updateDoc(taskDocRef, {
+    const updatePayload: Record<string, unknown> = {
       acceptedAt: nowIso,
       status: 'in_progress',
+    };
+    if (technician) {
+      updatePayload.assignedToId = technician.id;
+      updatePayload.assignedToName = technician.fullName;
+    }
+    await updateDoc(taskDocRef, updatePayload);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${taskId}`);
+  }
+}
+
+/**
+ * Reassigns an overdue or unaccepted task to ALL technicians in Firebase
+ */
+export async function reassignTaskToAllInFirebase(taskId: string): Promise<void> {
+  try {
+    const taskDocRef = doc(db, TASKS_COLLECTION, taskId);
+    await updateDoc(taskDocRef, {
+      assignedToId: 'all',
+      assignedToName: 'الكل (أي فني متاح)',
+      // Reset createdAt slightly or bump timestamp so all tech push notifications trigger anew
+      lastBroadcastAt: new Date().toISOString(),
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${taskId}`);

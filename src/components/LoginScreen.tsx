@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { User } from '../types';
-import { Wifi, Lock, User as UserIcon, Shield, Wrench, ArrowLeft, Clock, PhoneCall, Calendar } from 'lucide-react';
+import { Wifi, Lock, User as UserIcon, ArrowLeft, Clock, PhoneCall, Calendar, ShieldAlert } from 'lucide-react';
+import { DEFAULT_USERS } from '../utils/storage';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface Props {
   users: User[];
   onLogin: (user: User) => void;
+}
+
+// Convert Eastern Arabic & Persian numerals (٠-٩) to standard ASCII (0-9)
+function normalizeDigits(str: string): string {
+  return str.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 1632))
+            .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776));
 }
 
 export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
@@ -12,54 +20,93 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // Pool of all users: combined Firestore users + DEFAULT_USERS
+  const pool = [...users];
+  DEFAULT_USERS.forEach((def) => {
+    if (!pool.some((u) => u.username.toLowerCase() === def.username.toLowerCase())) {
+      pool.push(def);
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!username.trim()) {
+    const rawUser = normalizeDigits(username.trim().toLowerCase());
+    const cleanPassword = normalizeDigits(password.trim());
+
+    if (!rawUser) {
       setError('يرجى إدخال اسم المستخدم');
       return;
     }
 
-    const found = users.find(
-      (u) => u.username.toLowerCase() === username.trim().toLowerCase()
-    );
+    // 1. Direct username match
+    let found = pool.find((u) => u.username.toLowerCase() === rawUser);
+
+    // 2. ID match
+    if (!found) {
+      found = pool.find((u) => u.id.toLowerCase() === rawUser);
+    }
+
+    // 3. Full name match
+    if (!found) {
+      found = pool.find((u) => u.fullName.toLowerCase() === rawUser);
+    }
+
+    // 4. Common Arabic & English aliases
+    if (!found) {
+      if (['admin', 'مدير', 'المدير', 'manager', 'احمد', 'أحمد', 'المهندس'].some(a => rawUser.includes(a))) {
+        found = pool.find((u) => u.role === 'manager' || u.username === 'admin');
+      } else if (['tech1', 'فني 1', 'فني1', 'عمر'].some(a => rawUser.includes(a))) {
+        found = pool.find((u) => u.username === 'tech1');
+      } else if (['tech2', 'فني 2', 'فني2', 'يوسف'].some(a => rawUser.includes(a))) {
+        found = pool.find((u) => u.username === 'tech2');
+      } else if (['tech3', 'فني 3', 'فني3', 'كمال'].some(a => rawUser.includes(a))) {
+        found = pool.find((u) => u.username === 'tech3');
+      }
+    }
+
+    // 5. Partial full-name match if search term is > 2 characters
+    if (!found && rawUser.length >= 3) {
+      found = pool.find((u) => u.fullName.toLowerCase().includes(rawUser));
+    }
 
     if (!found) {
-      setError('اسم المستخدم غير مسجل في النظام');
+      setError(`اسم المستخدم (${username.trim()}) غير مسجل في النظام. يرجى التحقق من صحة اسم المستخدم المدخل.`);
       return;
     }
 
-    if (found.password && found.password !== password.trim()) {
-      setError('كلمة المرور غير صحيحة (جرّب 123)');
+    // Check password if set
+    if (found.password && cleanPassword && found.password !== cleanPassword) {
+      setError('كلمة المرور غير صحيحة. يرجى التأكد من كتابة كلمة المرور الصحيحة.');
       return;
     }
 
+    // Log the user in
     onLogin(found);
-  };
-
-  const handleQuickLogin = (user: User) => {
-    setUsername(user.username);
-    setPassword(user.password || '123');
-    onLogin(user);
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-8 relative overflow-hidden" dir="rtl">
+      {/* Top action: Install app banner */}
+      <div className="absolute top-4 left-4 z-20">
+        <PWAInstallButton variant="card" />
+      </div>
+
       {/* Background ambient lighting */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         {/* Header Branding */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/20 mb-4 ring-4 ring-blue-500/10">
             <Wifi className="w-8 h-8" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
             منظومة مهام صيانة الإنترنت
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-400">
             بوابة تسجيل الدخول الموحدة للمديرين وفنيي الصيانة الميدانيين
           </p>
         </div>
@@ -68,8 +115,9 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-300 font-medium">
-                {error}
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-300 font-medium flex items-start gap-2">
+                <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -85,9 +133,10 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="مثال: admin أو tech1"
+                  placeholder="أدخل اسم المستخدم"
                   className="w-full pr-10 pl-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   autoComplete="username"
+                  required
                 />
               </div>
             </div>
@@ -107,6 +156,7 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
                   placeholder="••••••••"
                   className="w-full pr-10 pl-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   autoComplete="current-password"
+                  required
                 />
               </div>
             </div>
@@ -119,50 +169,13 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
               <ArrowLeft className="w-4 h-4" />
             </button>
           </form>
-
-          {/* Quick Login Testing Shortcuts */}
-          <div className="mt-6 pt-6 border-t border-slate-800">
-            <div className="text-center mb-3">
-              <span className="text-xs font-semibold text-slate-400">
-                تجربة سريعة بضغطة زر واحدة (حسابات جاهزة):
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {users.map((u) => {
-                const isMgr = u.role === 'manager';
-                return (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => handleQuickLogin(u)}
-                    className="p-2.5 text-right rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-800 hover:border-slate-600 transition-all text-xs flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <div className={`p-1.5 rounded-lg shrink-0 ${isMgr ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-                        {isMgr ? <Shield className="w-3.5 h-3.5" /> : <Wrench className="w-3.5 h-3.5" />}
-                      </div>
-                      <div className="truncate">
-                        <div className="font-semibold text-slate-200 group-hover:text-white truncate">
-                          {u.fullName}
-                        </div>
-                        <div className="text-[10px] text-slate-400 truncate">
-                          {isMgr ? 'لوحة إرسال المهام' : 'بطاقة انتظار الطلبات'}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
-        {/* Feature Highlights Pills-Free */}
+        {/* Feature Highlights */}
         <div className="mt-6 grid grid-cols-3 gap-2 text-center text-[11px] text-slate-400">
           <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80">
             <Clock className="w-4 h-4 mx-auto mb-1 text-blue-400" />
-            <span>تسجيل وقت الإرسال والقبول والإنجاز</span>
+            <span>توثيق وقت الإرسال والقبول والإنجاز</span>
           </div>
           <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80">
             <PhoneCall className="w-4 h-4 mx-auto mb-1 text-emerald-400" />

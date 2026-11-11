@@ -30,12 +30,32 @@
         }
       },
       "required": ["taskNumber", "taskType", "subscriberName", "phone", "createdAt", "status"]
+    },
+    "User": {
+      "title": "User",
+      "description": "System manager or technician account credentials and profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string", "enum": ["manager", "technician"] },
+        "phone": { "type": "string" },
+        "specialty": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "username", "password", "fullName", "role"]
     }
   },
   "firestore": {
     "/tasks/{taskId}": {
       "schema": "Task",
       "description": "Collection of dispatched ISP maintenance tasks"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of users and technician accounts"
     }
   }
 }

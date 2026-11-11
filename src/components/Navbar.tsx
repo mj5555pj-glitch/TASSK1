@@ -1,28 +1,26 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { User, PageView } from '../types';
 import { 
   Wifi, 
   LogOut, 
-  UserCheck, 
   Shield, 
   Wrench, 
-  Users, 
   Send, 
   Activity, 
   Archive, 
   Clock, 
   Database 
 } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface Props {
   currentUser: User;
   currentPage: PageView;
   onPageChange: (page: PageView) => void;
   onLogout: () => void;
-  onSwitchUser: (user: User) => void;
-  allUsers: User[];
   pendingCount?: number;
   inProgressCount?: number;
+  onOpenTechManagement?: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -30,12 +28,10 @@ export const Navbar: React.FC<Props> = ({
   currentPage,
   onPageChange,
   onLogout,
-  onSwitchUser,
-  allUsers,
   pendingCount = 0,
   inProgressCount = 0,
+  onOpenTechManagement,
 }) => {
-  const [showSwitchMenu, setShowSwitchMenu] = useState(false);
   const isManager = currentUser.role === 'manager';
 
   return (
@@ -107,6 +103,18 @@ export const Navbar: React.FC<Props> = ({
                 <Archive className="w-3.5 h-3.5" />
                 <span>سجل الأسبوع والأرشيف</span>
               </button>
+
+              {onOpenTechManagement && (
+                <button
+                  type="button"
+                  onClick={onOpenTechManagement}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors whitespace-nowrap"
+                  title="تعديل حسابات الفنيين وإضافة أو إزالة فني وتغيير كلمات المرور"
+                >
+                  <Wrench className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>إدارة حسابات الفنيين</span>
+                </button>
+              )}
             </nav>
           )}
 
@@ -121,60 +129,8 @@ export const Navbar: React.FC<Props> = ({
               <span className="text-white font-medium hidden sm:inline">{currentUser.fullName}</span>
             </div>
 
-            {/* Quick Switch Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowSwitchMenu(!showSwitchMenu)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors"
-                title="تبديل الحساب للتجربة والمحاكاة"
-              >
-                <Users className="w-3.5 h-3.5 text-blue-400" />
-                <span className="hidden sm:inline">تبديل</span>
-              </button>
-
-              {showSwitchMenu && (
-                <div 
-                  className="absolute left-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in"
-                  dir="rtl"
-                >
-                  <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 border-b border-slate-800">
-                    تبديل سريع للمستخدم (للتجربة)
-                  </div>
-                  <div className="max-h-60 overflow-y-auto py-1">
-                    {allUsers.map((u) => {
-                      const isCurrent = u.id === currentUser.id;
-                      return (
-                        <button
-                          key={u.id}
-                          onClick={() => {
-                            onSwitchUser(u);
-                            setShowSwitchMenu(false);
-                          }}
-                          className={`w-full text-right px-3 py-2 flex items-center justify-between text-xs transition-colors hover:bg-slate-800 ${
-                            isCurrent ? 'bg-blue-600/15 text-blue-300 font-bold' : 'text-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {u.role === 'manager' ? (
-                              <Shield className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                            ) : (
-                              <Wrench className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                            )}
-                            <div>
-                              <div className="text-xs">{u.fullName}</div>
-                              <div className="text-[10px] text-slate-400">
-                                {u.role === 'manager' ? 'مدير الصيانة' : u.specialty || 'فني ميداني'}
-                              </div>
-                            </div>
-                          </div>
-                          {isCurrent && <UserCheck className="w-4 h-4 text-blue-400" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* PWA Install Button for Desktop & Mobile */}
+            <PWAInstallButton variant="navbar" />
 
             {/* Logout button */}
             <button
@@ -216,8 +172,18 @@ export const Navbar: React.FC<Props> = ({
               }`}
             >
               <Archive className="w-3.5 h-3.5" />
-              <span>الأرشيف (أسبوع)</span>
+              <span>الأرشيف</span>
             </button>
+            {onOpenTechManagement && (
+              <button
+                type="button"
+                onClick={onOpenTechManagement}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-emerald-400 font-bold hover:bg-slate-800"
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                <span>الفنيين</span>
+              </button>
+            )}
           </div>
         )}
       </div>
