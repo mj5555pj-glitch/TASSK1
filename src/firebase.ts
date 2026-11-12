@@ -71,72 +71,36 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Initial default tasks if Firestore collection is initially empty
+// Initial default tasks: returns empty array (no demo tasks)
 export function getInitialDefaultTasks(): MaintenanceTask[] {
-  const now = Date.now();
-  const minutesAgo = (mins: number) => new Date(now - mins * 60 * 1000).toISOString();
-  const hoursAgo = (hours: number) => new Date(now - hours * 3600 * 1000).toISOString();
-
-  return [
-    {
-      id: 'tsk_101',
-      taskNumber: '#TSK-1042',
-      taskType: 'صيانة',
-      subscriberName: 'حيدر عبد الرضا',
-      phone: '07801234567',
-      notes: 'كابل الفايبر مقطوع عند مدخل البناية بسبب أعمال حفر الشارع. ضوء LOS أحمر بالراوتر.',
-      assignedToId: 'user_tech1',
-      assignedToName: 'عمر الصالح',
-      createdBy: 'المهندس أحمد العلي',
-      createdAt: minutesAgo(25),
-      acceptedAt: null,
-      completedAt: null,
-      durationSeconds: null,
-      durationFormatted: null,
-      expiresAt: new Date(now - 25 * 60 * 1000 + SEVEN_DAYS_MS).toISOString(),
-      status: 'pending',
-    },
-    {
-      id: 'tsk_102',
-      taskNumber: '#TSK-1041',
-      taskType: 'ضعف',
-      subscriberName: 'سعد جاسم المحمداوي',
-      phone: '07705556677',
-      notes: 'انحراف الصحن الهوائي بسبب الرياح الشديدة. الإشارة هابطة والسرعة بطيئة.',
-      assignedToId: 'user_tech1',
-      assignedToName: 'عمر الصالح',
-      createdBy: 'المهندس أحمد العلي',
-      createdAt: hoursAgo(2),
-      acceptedAt: minutesAgo(35),
-      completedAt: null,
-      durationSeconds: null,
-      durationFormatted: null,
-      expiresAt: new Date(now - 2 * 3600 * 1000 + SEVEN_DAYS_MS).toISOString(),
-      status: 'in_progress',
-    },
-    {
-      id: 'tsk_103',
-      taskNumber: '#TSK-1040',
-      taskType: 'تنصيب',
-      subscriberName: 'مريم شاكر البصري',
-      phone: '07509876543',
-      notes: 'اشتراك إنترنت جديد. تركيب راوتر وتمديد كابل خارجي وبرمجة الحساب.',
-      assignedToId: 'user_tech2',
-      assignedToName: 'يوسف النجار',
-      createdBy: 'المهندس أحمد العلي',
-      createdAt: hoursAgo(5),
-      acceptedAt: hoursAgo(4),
-      completedAt: hoursAgo(3),
-      durationSeconds: 3480, // 58 mins
-      durationFormatted: '58 دقيقة',
-      completionNotes: 'تم سحب الكابل وتركيب الراوتر وبرمجة خدمة الـ PPPoE بنجاح.',
-      expiresAt: new Date(now - 5 * 3600 * 1000 + SEVEN_DAYS_MS).toISOString(),
-      status: 'completed',
-    },
-  ];
+  return [];
 }
 
 const TASKS_COLLECTION = 'tasks';
+
+const DEMO_TASK_IDS = new Set(['tsk_101', 'tsk_102', 'tsk_103', 'tsk_104']);
+const DEMO_SUBSCRIBERS = new Set(['حيدر عبد الرضا', 'سعد جاسم المحمداوي', 'مريم شاكر البصري', 'حسين علي التميمي']);
+
+/**
+ * Permanently purge all demo/sample tasks from Firestore
+ */
+export async function purgeAllDemoTasks(): Promise<number> {
+  let purgedCount = 0;
+  try {
+    const tasksRef = collection(db, TASKS_COLLECTION);
+    const snapshot = await getDocs(tasksRef);
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data() as MaintenanceTask;
+      if (DEMO_TASK_IDS.has(docSnap.id) || DEMO_SUBSCRIBERS.has(data.subscriberName)) {
+        await deleteDoc(doc(db, TASKS_COLLECTION, docSnap.id));
+        purgedCount++;
+      }
+    }
+  } catch (err) {
+    console.warn('Error purging demo tasks:', err);
+  }
+  return purgedCount;
+}
 
 /**
  * Subscribe to real-time updates from Firebase Firestore with 7-day auto-purge
@@ -152,17 +116,8 @@ export function subscribeToFirestoreTasks(
     q,
     async (snapshot) => {
       if (snapshot.empty) {
-        // If empty on first run, seed default tasks into Firestore
-        const defaults = getInitialDefaultTasks();
-        try {
-          for (const item of defaults) {
-            await setDoc(doc(db, TASKS_COLLECTION, item.id), item);
-          }
-        } catch {
-          // If seeding fails, return defaults locally
-          onUpdate(defaults);
-          return;
-        }
+        onUpdate([]);
+        return;
       }
 
       const tasks: MaintenanceTask[] = [];
@@ -171,6 +126,13 @@ export function subscribeToFirestoreTasks(
 
       snapshot.forEach((docSnap) => {
         const data = docSnap.data() as MaintenanceTask;
+
+        // Auto-purge demo tasks if they exist in Firestore
+        if (DEMO_TASK_IDS.has(docSnap.id) || DEMO_SUBSCRIBERS.has(data.subscriberName)) {
+          deleteDoc(doc(db, TASKS_COLLECTION, docSnap.id)).catch(() => {});
+          return;
+        }
+
         const task: MaintenanceTask = {
           ...data,
           id: docSnap.id,

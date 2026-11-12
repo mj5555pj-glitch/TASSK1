@@ -83,10 +83,10 @@ export const ArchivePage: React.FC<Props> = ({
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">سجل وأرشيف المهام المكتملة</h1>
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <h1 className="text-lg sm:text-2xl font-bold text-white">سجل وأرشيف المهام المكتملة</h1>
             <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{completedTasks.length} مهمة منجزة</span>
@@ -97,24 +97,24 @@ export const ArchivePage: React.FC<Props> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <button
             type="button"
             onClick={handlePurge}
             disabled={isPurging}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors"
+            className="flex-1 sm:flex-none px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
             title="فحص وحذف المهام الأقدم من 7 أيام"
           >
-            <Trash2 className="w-4 h-4 text-rose-400" />
-            <span>{isPurging ? 'جاري الفحص...' : 'فحص وتنظيف سجلات 7 أيام'}</span>
+            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 shrink-0" />
+            <span className="truncate">{isPurging ? 'جاري الفحص...' : 'فحص سجلات 7 أيام'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleExportCSV}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors"
+            className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
           >
-            <Download className="w-4 h-4 text-emerald-400" />
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
             <span>تصدير CSV</span>
           </button>
         </div>

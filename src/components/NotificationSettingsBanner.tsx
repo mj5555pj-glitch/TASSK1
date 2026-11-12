@@ -48,7 +48,7 @@ export const NotificationSettingsBanner: React.FC = () => {
 
   if (permission === 'granted') {
     return (
-      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between text-xs text-emerald-300">
+      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-emerald-300">
         <div className="flex items-center gap-2">
           <BellRing className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>الإشعارات الفورية مفعّلة على هذا الجهاز — ستصلك كافة المهام الجديدة فور إرسالها من المدير.</span>

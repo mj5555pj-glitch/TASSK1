@@ -96,10 +96,10 @@ export const MonitoringPage: React.FC<Props> = ({
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">صفحة متابعة المهام الجارية والمعلقة</h1>
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <h1 className="text-lg sm:text-2xl font-bold text-white">صفحة متابعة المهام الجارية والمعلقة</h1>
             <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
               <span>مزامنة فايبر بيس حية</span>
@@ -113,13 +113,13 @@ export const MonitoringPage: React.FC<Props> = ({
 
       {/* تنبيه تلقائي عاجل للمدير عند وجود طلبات لم تقبل بعد 15 دقيقة */}
       {overdueTasks.length > 0 && (
-        <div className="bg-rose-950/40 border-2 border-rose-500/60 rounded-2xl p-4 sm:p-5 shadow-xl shadow-rose-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in">
+        <div className="bg-rose-950/40 border-2 border-rose-500/60 rounded-2xl p-3.5 sm:p-5 shadow-xl shadow-rose-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 animate-in fade-in">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-6 h-6 animate-pulse" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm sm:text-base font-bold text-rose-200">
                   تنبيه المدير: يوجد ({overdueTasks.length}) طلبات معلقة تجاوزت 15 دقيقة دون أن يقبلها أي فني!
                 </span>
@@ -136,46 +136,46 @@ export const MonitoringPage: React.FC<Props> = ({
       )}
 
       {/* بطاقات الإحصائيات المطلوبة: عدد الطلبات المعلقة، الطلبات الجارية، إنجاز اليوم */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* بطاقة الطلبات المعلقة */}
-        <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-5 shadow-lg shadow-amber-950/10 flex items-center justify-between">
+        <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-lg shadow-amber-950/10 flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-amber-300 block mb-1">عدد الطلبات المعلقة</span>
-            <div className="text-3xl font-black text-amber-400 tabular-nums">
+            <span className="text-xs font-bold text-amber-300 block mb-0.5">عدد الطلبات المعلقة</span>
+            <div className="text-2xl sm:text-3xl font-black text-amber-400 tabular-nums">
               {pendingTasks.length} <span className="text-xs font-normal text-slate-400">طلب</span>
             </div>
-            <span className="text-[11px] text-slate-400 mt-1 block">بانتظار قبول الفني للبدء</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block">بانتظار قبول الفني للبدء</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-            <Clock className="w-6 h-6" />
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         {/* بطاقة الطلبات الجارية */}
-        <div className="bg-slate-900 border border-blue-500/30 rounded-2xl p-5 shadow-lg shadow-blue-950/10 flex items-center justify-between">
+        <div className="bg-slate-900 border border-blue-500/30 rounded-2xl p-4 sm:p-5 shadow-lg shadow-blue-950/10 flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-blue-300 block mb-1">الطلبات الجارية</span>
-            <div className="text-3xl font-black text-blue-400 tabular-nums">
+            <span className="text-xs font-bold text-blue-300 block mb-0.5">الطلبات الجارية</span>
+            <div className="text-2xl sm:text-3xl font-black text-blue-400 tabular-nums">
               {inProgressTasks.length} <span className="text-xs font-normal text-slate-400">مهمة</span>
             </div>
-            <span className="text-[11px] text-slate-400 mt-1 block">قيد التنفيذ والمباشرة بالموقع</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block">قيد التنفيذ والمباشرة بالموقع</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
-            <Play className="w-6 h-6" />
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <Play className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         {/* بطاقة إنجاز اليوم */}
-        <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 shadow-lg shadow-emerald-950/10 flex items-center justify-between">
+        <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-lg shadow-emerald-950/10 flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-emerald-300 block mb-1">إنجاز اليوم</span>
-            <div className="text-3xl font-black text-emerald-400 tabular-nums">
+            <span className="text-xs font-bold text-emerald-300 block mb-0.5">إنجاز اليوم</span>
+            <div className="text-2xl sm:text-3xl font-black text-emerald-400 tabular-nums">
               {todayCompletedCount} <span className="text-xs font-normal text-slate-400">مهمة منجزة</span>
             </div>
-            <span className="text-[11px] text-slate-400 mt-1 block">تم إتمامها وتوثيق وقتها اليوم</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block">تم إتمامها وتوثيق وقتها اليوم</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
@@ -234,8 +234,8 @@ export const MonitoringPage: React.FC<Props> = ({
                 >
                   <div>
                     {/* Header: Task #, Type, Tech */}
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-xs font-bold text-blue-400" dir="ltr">
                           {task.taskNumber}
                         </span>
@@ -244,7 +244,7 @@ export const MonitoringPage: React.FC<Props> = ({
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-300 border border-blue-500/20 px-2.5 py-1 rounded-lg text-xs font-bold">
+                      <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-300 border border-blue-500/20 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0">
                         <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                         <span>قيد التنفيذ بالموقع</span>
                       </div>
@@ -257,7 +257,7 @@ export const MonitoringPage: React.FC<Props> = ({
                         <span className="text-white font-bold">{task.subscriberName}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-800/80">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs pt-1.5 border-t border-slate-800/80">
                         <span className="text-slate-400">رقم الهاتف:</span>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-slate-200" dir="ltr">{task.phone}</span>
@@ -272,7 +272,7 @@ export const MonitoringPage: React.FC<Props> = ({
                             type="button"
                             onClick={() => setSelectedWhatsAppTask(task)}
                             className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition-colors"
-                            title="إرسال رسالة واتساب جاهزة باسم الفني والمشترك"
+                            title="خيارات الواتساب (إرسال رسالة أو الاتصال عبر الواتساب)"
                           >
                             <MessageSquare className="w-3.5 h-3.5" />
                           </button>
@@ -293,8 +293,8 @@ export const MonitoringPage: React.FC<Props> = ({
                       </div>
                     )}
 
-                    {/* Timestamps & Live Duration */}
-                    <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-[11px]">
+                    {/* Timestamps & Live Duration - mobile responsive grid */}
+                    <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
                       <div>
                         <span className="text-slate-500 block">وقت الإرسال:</span>
                         <span className="text-slate-300 font-medium">{formatArabicDateTime(task.createdAt)}</span>
@@ -303,7 +303,7 @@ export const MonitoringPage: React.FC<Props> = ({
                         <span className="text-slate-500 block">وقت القبول:</span>
                         <span className="text-slate-300 font-medium">{formatArabicDateTime(task.acceptedAt)}</span>
                       </div>
-                      <div>
+                      <div className="xs:col-span-2 sm:col-span-1">
                         <span className="text-slate-500 block">الوقت المستغرق حتى الآن:</span>
                         <span className="text-blue-400 font-mono font-bold" dir="ltr">
                           ⏱ {formatDigitalTimer(liveSecs)}
@@ -365,8 +365,8 @@ export const MonitoringPage: React.FC<Props> = ({
                 >
                   <div>
                     {/* Header: Task #, Type, Status */}
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-xs font-bold text-slate-300" dir="ltr">
                           {task.taskNumber}
                         </span>
@@ -376,12 +376,12 @@ export const MonitoringPage: React.FC<Props> = ({
                       </div>
 
                       {isOverdue ? (
-                        <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-1 rounded-lg text-xs font-bold animate-pulse flex items-center gap-1.5">
+                        <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-1 rounded-lg text-xs font-bold animate-pulse flex items-center gap-1.5 shrink-0">
                           <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                           <span>متأخرة ({elapsedMins} دقيقة دون قبول)</span>
                         </span>
                       ) : (
-                        <span className="bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span className="bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0">
                           بانتظار قبول الفني
                         </span>
                       )}
@@ -394,7 +394,7 @@ export const MonitoringPage: React.FC<Props> = ({
                         <span className="text-white font-bold">{task.subscriberName}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-800/80">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs pt-1.5 border-t border-slate-800/80">
                         <span className="text-slate-400">رقم الهاتف:</span>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-slate-200" dir="ltr">{task.phone}</span>
@@ -409,7 +409,7 @@ export const MonitoringPage: React.FC<Props> = ({
                             type="button"
                             onClick={() => setSelectedWhatsAppTask(task)}
                             className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition-colors"
-                            title="إرسال رسالة واتساب جاهزة باسم الفني والمشترك"
+                            title="خيارات الواتساب (إرسال رسالة أو الاتصال عبر الواتساب)"
                           >
                             <MessageSquare className="w-3.5 h-3.5" />
                           </button>
@@ -431,7 +431,7 @@ export const MonitoringPage: React.FC<Props> = ({
                     )}
 
                     {/* Timestamps */}
-                    <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                       <div>
                         <span className="text-slate-500 block">وقت الإرسال:</span>
                         <span className="text-slate-300 font-medium">{formatArabicDateTime(task.createdAt)}</span>
@@ -448,7 +448,7 @@ export const MonitoringPage: React.FC<Props> = ({
                   </div>
 
                   {/* Footer Action */}
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[10px] text-slate-400">
                       {getRetentionCountdown(task.createdAt)}
                     </span>

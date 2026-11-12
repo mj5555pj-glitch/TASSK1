@@ -19,7 +19,9 @@ import {
   ShieldCheck, 
   Calendar, 
   Check, 
-  Radio
+  Radio,
+  Zap,
+  Users
 } from 'lucide-react';
 
 interface Props {
@@ -35,7 +37,7 @@ export const TechnicianView: React.FC<Props> = ({
   onAcceptTask,
   onCompleteTask,
 }) => {
-  const [activeTab, setActiveTab] = useState<'pending' | 'in_progress' | 'completed' | 'all'>('pending');
+  const [activeTab, setActiveTab] = useState<'broadcast' | 'pending' | 'in_progress' | 'completed' | 'all'>('broadcast');
   const [selectedTaskForWhatsApp, setSelectedTaskForWhatsApp] = useState<MaintenanceTask | null>(null);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
   const [completionNotes, setCompletionNotes] = useState('');
@@ -48,26 +50,44 @@ export const TechnicianView: React.FC<Props> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Filter tasks assigned to this technician or open tasks
-  const myTasks = tasks.filter(
-    (t) => t.assignedToId === technician.id || t.assignedToId === 'all' || !t.assignedToId
+  // 1. Tasks broadcast to ALL technicians (unclaimed)
+  const broadcastTasks = tasks.filter(
+    (t) => (t.assignedToId === 'all' || !t.assignedToId) && (t.status === 'pending' || !t.acceptedAt)
   );
 
-  const pendingTasks = myTasks.filter((t) => t.status === 'pending' || (!t.acceptedAt && !t.completedAt));
-  const inProgressTasks = myTasks.filter((t) => t.status === 'in_progress' || (t.acceptedAt && !t.completedAt));
-  const completedTasks = myTasks.filter((t) => t.status === 'completed' || !!t.completedAt);
+  // 2. Tasks assigned directly to this technician and pending acceptance
+  const directPendingTasks = tasks.filter(
+    (t) => t.assignedToId === technician.id && (t.status === 'pending' || !t.acceptedAt)
+  );
+
+  // 3. Tasks currently in-progress by this technician
+  const inProgressTasks = tasks.filter(
+    (t) => t.assignedToId === technician.id && (t.status === 'in_progress' || (t.acceptedAt && !t.completedAt))
+  );
+
+  // 4. Tasks completed by this technician
+  const completedTasks = tasks.filter(
+    (t) => t.assignedToId === technician.id && (t.status === 'completed' || !!t.completedAt)
+  );
+
+  // 5. All tasks relevant to this technician
+  const myAllTasks = tasks.filter(
+    (t) => t.assignedToId === technician.id || ((t.assignedToId === 'all' || !t.assignedToId) && (t.status === 'pending' || !t.acceptedAt))
+  );
 
   const displayedTasks = (() => {
     switch (activeTab) {
+      case 'broadcast':
+        return broadcastTasks;
       case 'pending':
-        return pendingTasks;
+        return directPendingTasks;
       case 'in_progress':
         return inProgressTasks;
       case 'completed':
         return completedTasks;
       case 'all':
       default:
-        return myTasks;
+        return myAllTasks;
     }
   })();
 
@@ -113,46 +133,53 @@ export const TechnicianView: React.FC<Props> = ({
   return (
     <div className="space-y-6" dir="rtl">
       {/* Top Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl shadow-inner">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg sm:text-xl shadow-inner shrink-0">
               {technician.fullName.charAt(0)}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-white">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-2xl font-bold text-white truncate">
                   أهلاً بك، الفني {technician.fullName}
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>فني صيانة معتمد</span>
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+              <div className="flex items-center gap-2 text-xs text-slate-400 mt-1 flex-wrap">
                 <span>{technician.specialty || 'صيانة شبكات الإنترنت'}</span>
                 <span>·</span>
                 <span className="flex items-center gap-1 text-emerald-400">
                   <Radio className="w-3 h-3 animate-pulse" />
-                  <span>قاعدة بيانات فايبر بيس متصلة</span>
+                  <span>فايبر بيس متصل</span>
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Quick Counter Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-right">
-              <div className="text-[11px] text-amber-300 font-medium">بانتظار القبول</div>
-              <div className="text-lg font-black text-amber-400 tabular-nums">{pendingTasks.length} طلب</div>
+          {/* Quick Counter Badges - 4 responsive columns */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 w-full sm:w-auto">
+            <div className="p-2 sm:px-3 sm:py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center sm:text-right">
+              <div className="text-[10px] sm:text-[11px] text-emerald-300 font-bold flex items-center justify-center sm:justify-start gap-1">
+                <Users className="w-3 h-3 text-emerald-400" />
+                <span>مرسلة للكل</span>
+              </div>
+              <div className="text-base sm:text-lg font-black text-emerald-400 tabular-nums">{broadcastTasks.length} متاحة</div>
             </div>
-            <div className="px-3.5 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-right">
-              <div className="text-[11px] text-blue-300 font-medium">قيد التنفيذ</div>
-              <div className="text-lg font-black text-blue-400 tabular-nums">{inProgressTasks.length} مهمة</div>
+            <div className="p-2 sm:px-3 sm:py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center sm:text-right">
+              <div className="text-[10px] sm:text-[11px] text-amber-300 font-medium">بانتظار قبولي</div>
+              <div className="text-base sm:text-lg font-black text-amber-400 tabular-nums">{directPendingTasks.length} طلب</div>
             </div>
-            <div className="px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-right">
-              <div className="text-[11px] text-emerald-300 font-medium">المهام المنجزة</div>
-              <div className="text-lg font-black text-emerald-400 tabular-nums">{completedTasks.length} مهمة</div>
+            <div className="p-2 sm:px-3 sm:py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center sm:text-right">
+              <div className="text-[10px] sm:text-[11px] text-blue-300 font-medium">قيد التنفيذ</div>
+              <div className="text-base sm:text-lg font-black text-blue-400 tabular-nums">{inProgressTasks.length} مهمة</div>
+            </div>
+            <div className="p-2 sm:px-3 sm:py-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-center sm:text-right">
+              <div className="text-[10px] sm:text-[11px] text-teal-300 font-medium">المنجزة</div>
+              <div className="text-base sm:text-lg font-black text-teal-400 tabular-nums">{completedTasks.length} مهمة</div>
             </div>
           </div>
         </div>
@@ -161,39 +188,160 @@ export const TechnicianView: React.FC<Props> = ({
       {/* Push Notification Setup & Test Banner */}
       <NotificationSettingsBanner />
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-800">
+      {/* بطاقة جديدة في حساب الفني للمهام المرسلة للكل */}
+      <div className="bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-xl shadow-emerald-950/20 space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5 text-emerald-400 animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
+                  <span>بطاقة المهام العامة المرسلة للكل</span>
+                  <span className="text-xs text-emerald-400 font-normal">(متاحة لأي فني)</span>
+                </h2>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                  broadcastTasks.length > 0
+                    ? 'bg-emerald-500 text-slate-950 animate-pulse'
+                    : 'bg-slate-800 text-slate-400'
+                }`}>
+                  {broadcastTasks.length} {broadcastTasks.length === 1 ? 'مهمة متاحة' : 'مهام متاحة للجميع'}
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                مهام عامة أرسلها المدير لكافة الفنيين، يمكن لأي فني أخذ المهمة ونسبها لنفسه فوراً والبدء بها.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {broadcastTasks.length === 0 ? (
+          <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center text-xs text-slate-400">
+            لا توجد مهام عامة مرسلة للكل حالياً. عندما يرسل المدير مهمة للكل ستظهر هنا فوراً لأي فني يرغب بأخذها.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            {broadcastTasks.map((task) => (
+              <div
+                key={task.id}
+                className="bg-slate-950 border border-emerald-500/40 hover:border-emerald-500/70 rounded-xl p-4 shadow-md space-y-3 transition-all"
+              >
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-800/80">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-emerald-400" dir="ltr">
+                      {task.taskNumber}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${getTaskTypeBadge(task.taskType)}`}>
+                      نوع المهمة: {task.taskType}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    📢 مرسلة للكل
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">المشترك:</span>
+                    <span className="font-bold text-white">{task.subscriberName}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1 border-t border-slate-800/60">
+                    <span className="text-slate-400">رقم الهاتف:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-slate-200" dir="ltr">{task.phone}</span>
+                      <a
+                        href={getTelUrl(task.phone)}
+                        className="p-1 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition-colors"
+                        title="اتصال هاتفي"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTaskForWhatsApp(task)}
+                        className="p-1 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg transition-colors"
+                        title="خيارات الواتساب"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  {task.notes && (
+                    <div className="p-2 bg-slate-900 rounded-lg text-[11px] text-slate-300">
+                      {task.notes}
+                    </div>
+                  )}
+                </div>
+
+                {/* زر أخذ المهمة ونسبها لنفسي */}
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={() => handleAccept(task.id)}
+                  className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-teal-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-950/30 flex items-center justify-center gap-2 ring-1 ring-emerald-400/40 disabled:opacity-50 cursor-pointer"
+                >
+                  <Zap className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span>⚡ أخذ المهمة ونسبها لنفسي والبدء بها فوراً</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tabs Navigation - 5 tabs with responsive layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-2 pb-1 border-b border-slate-800 w-full">
+        <button
+          onClick={() => setActiveTab('broadcast')}
+          className={`flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all ${
+            activeTab === 'broadcast'
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 ring-1 ring-emerald-400/40'
+              : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">المرسلة للكل</span>
+          {broadcastTasks.length > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums font-black shrink-0 ${
+              activeTab === 'broadcast' ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-300'
+            }`}>
+              {broadcastTasks.length}
+            </span>
+          )}
+        </button>
+
         <button
           onClick={() => setActiveTab('pending')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'pending'
               ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
               : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800'
           }`}
         >
-          <Clock className="w-4 h-4" />
-          <span>بطاقة انتظار الطلبات (المعلقة)</span>
-          {pendingTasks.length > 0 && (
-            <span className={`px-2 py-0.5 rounded-full text-[11px] tabular-nums font-black ${
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">الموجهة لي</span>
+          {directPendingTasks.length > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums font-black shrink-0 ${
               activeTab === 'pending' ? 'bg-slate-950 text-amber-400' : 'bg-amber-500/20 text-amber-300'
             }`}>
-              {pendingTasks.length}
+              {directPendingTasks.length}
             </span>
           )}
         </button>
 
         <button
           onClick={() => setActiveTab('in_progress')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'in_progress'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
               : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800'
           }`}
         >
-          <Play className="w-4 h-4" />
-          <span>المهام الجارية بالموقع</span>
+          <Play className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">الجارية</span>
           {inProgressTasks.length > 0 && (
-            <span className={`px-2 py-0.5 rounded-full text-[11px] tabular-nums font-black ${
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums font-black shrink-0 ${
               activeTab === 'in_progress' ? 'bg-white text-blue-600' : 'bg-blue-500/20 text-blue-300'
             }`}>
               {inProgressTasks.length}
@@ -203,44 +351,50 @@ export const TechnicianView: React.FC<Props> = ({
 
         <button
           onClick={() => setActiveTab('completed')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'completed'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
               : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>المهام المنجزة</span>
-          <span className="text-[11px] tabular-nums opacity-70">({completedTasks.length})</span>
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">المنجزة</span>
+          <span className="text-[10px] tabular-nums opacity-70">({completedTasks.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('all')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
+          className={`col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-3 sm:py-2.5 rounded-xl text-xs font-medium transition-all ${
             activeTab === 'all'
               ? 'bg-slate-700 text-white'
               : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
-          <span>كافة مهامي ({myTasks.length})</span>
+          <span className="truncate">كافة مهامي ({myAllTasks.length})</span>
         </button>
       </div>
 
       {/* Task Cards Grid */}
       {displayedTasks.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500">
-            <CheckCircle2 className="w-8 h-8" />
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
+          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500">
+            <CheckCircle2 className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-slate-200">
-            {activeTab === 'pending'
-              ? 'لا توجد طلبات صيانة بانتظار القبول حالياً'
+          <h3 className="text-sm sm:text-base font-bold text-slate-200">
+            {activeTab === 'broadcast'
+              ? 'لا توجد مهام عامة مرسلة للكل حالياً'
+              : activeTab === 'pending'
+              ? 'لا توجد طلبات صيانة خاصة موجهة لك بانتظار القبول حالياً'
               : activeTab === 'in_progress'
-              ? 'لا توجد مهام جارية حالياً'
-              : 'لا توجد مهام في هذا القسم'}
+              ? 'لا توجد مهام جارية قيد التنفيذ حالياً'
+              : activeTab === 'completed'
+              ? 'لا توجد مهام منجزة بعد'
+              : 'لا توجد مهام مسجلة'}
           </h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
-            عندما يقوم المدير بإرسال مهمة جديدة ستظهر في بطاقة انتظار الطلبات مباشرة عبر فايبر بيس.
+            {activeTab === 'broadcast'
+              ? 'عندما يقوم المدير بإرسال مهمة للكل ستظهر في بطاقة المهام العامة ويمكن لأي فني أخذها.'
+              : 'عندما يقوم المدير بإرسال مهمة جديدة ستظهر في بطاقة انتظار الطلبات مباشرة عبر فايبر بيس.'}
           </p>
         </div>
       ) : (
@@ -307,44 +461,44 @@ export const TechnicianView: React.FC<Props> = ({
                   </div>
 
                   {/* اسم المشترك ورقم الهاتف مع أيقونة الاتصال وأيقونة الواتساب */}
-                  <div className="mt-2.5 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+                  <div className="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-slate-400 flex items-center gap-1.5">
                         <UserIcon className="w-3.5 h-3.5 text-slate-500" />
                         <span>اسم المشترك:</span>
                       </span>
-                      <span className="text-sm font-bold text-white">
+                      <span className="text-sm font-bold text-white truncate max-w-[170px] sm:max-w-none">
                         {task.subscriberName}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 pt-2 border-t border-slate-800/80">
                       <span className="text-xs text-slate-400 flex items-center gap-1.5">
                         <Phone className="w-3.5 h-3.5 text-slate-500" />
                         <span>رقم الهاتف:</span>
                       </span>
 
                       {/* مقابل رقم الهاتف: أيقونة الاتصال وأيقونة الواتساب */}
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-semibold text-slate-200" dir="ltr">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="font-mono text-xs sm:text-sm font-semibold text-slate-200" dir="ltr">
                           {task.phone}
                         </span>
 
                         {/* أيقونة الاتصال */}
                         <a
                           href={getTelUrl(task.phone)}
-                          className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 transition-all"
+                          className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 transition-all shrink-0"
                           title={`اتصال هاتفي مباشر بالرقم ${task.phone}`}
                         >
                           <Phone className="w-4 h-4" />
                         </a>
 
-                        {/* أيقونة الواتساب (تحويل مباشر مع رسالة جاهزة باسم الفني والمشترك) */}
+                        {/* أيقونة الواتساب (خيارات إرسال رسالة أو الاتصال عبر الواتساب) */}
                         <button
                           type="button"
                           onClick={() => setSelectedTaskForWhatsApp(task)}
-                          className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 transition-all shadow-sm"
-                          title="إرسال رسالة واتساب جاهزة باسمك واسم المشترك"
+                          className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 transition-all shadow-sm shrink-0"
+                          title="خيارات الواتساب: إرسال رسالة جاهزة أو الاتصال عبر الواتساب"
                         >
                           <MessageSquare className="w-4 h-4" />
                         </button>
@@ -429,12 +583,17 @@ export const TechnicianView: React.FC<Props> = ({
                           : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/30'
                       }`}
                     >
-                      <Play className="w-4 h-4" />
-                      <span>
-                        {task.assignedToId === 'all'
-                          ? '✨ قبول المهمة ونسبها لنفسي والبدء الآن'
-                          : 'قبول المهمة وبدء التحرك الآن'}
-                      </span>
+                      {task.assignedToId === 'all' || !task.assignedToId ? (
+                        <>
+                          <Zap className="w-4 h-4 text-amber-300" />
+                          <span>⚡ أخذ المهمة ونسبها لنفسي والبدء بها فوراً</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4" />
+                          <span>قبول المهمة وبدء التحرك الآن</span>
+                        </>
+                      )}
                     </button>
                   )}
 

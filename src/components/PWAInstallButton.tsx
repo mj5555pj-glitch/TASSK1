@@ -45,29 +45,30 @@ export const PWAInstallButton: React.FC<Props> = ({ variant = 'navbar' }) => {
       <button
         type="button"
         onClick={handleInstallClick}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
+        className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
           variant === 'navbar'
             ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/20'
             : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
         }`}
         title="تثبيت التطبيق على سطح المكتب للكمبيوتر والجوال"
       >
-        <Download className="w-3.5 h-3.5 text-blue-200 animate-bounce" />
-        <span className="whitespace-nowrap">تثبيت التطبيق</span>
+        <Download className="w-3.5 h-3.5 text-blue-200 shrink-0" />
+        <span className="hidden xs:inline sm:hidden whitespace-nowrap">تثبيت</span>
+        <span className="hidden sm:inline whitespace-nowrap">تثبيت التطبيق</span>
       </button>
 
       {/* Success notification */}
       {installedSuccess && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold animate-in fade-in" dir="rtl">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>تم تثبيت التطبيق بنجاح على جهازك! يمكنك الآن فتحه مباشرة من الشاشة الرئيسية.</span>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold animate-in fade-in max-w-[calc(100vw-2rem)]" dir="rtl">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>تم تثبيت التطبيق بنجاح على جهازك!</span>
         </div>
       )}
 
       {/* Guided Install Modal for Desktop & Mobile Browsers */}
       {showGuideModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" dir="rtl">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm" dir="rtl">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-[calc(100vw-1.5rem)] sm:max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-200 text-slate-100 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5">

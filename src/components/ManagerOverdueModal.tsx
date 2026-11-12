@@ -30,25 +30,25 @@ export const ManagerOverdueModal: React.FC<Props> = ({
   if (overdueTasks.length === 0) return null;
 
   return (
-    <div className="fixed inset-x-0 top-0 z-50 p-4 pointer-events-none flex justify-center" dir="rtl">
-      <div className="w-full max-w-4xl bg-slate-900/95 border-2 border-rose-500/70 rounded-2xl shadow-2xl shadow-rose-950/60 backdrop-blur-md pointer-events-auto overflow-hidden animate-in slide-in-from-top-4 duration-300">
+    <div className="fixed inset-x-0 top-0 z-50 p-2 sm:p-4 pointer-events-none flex justify-center" dir="rtl">
+      <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-4xl bg-slate-900/95 border-2 border-rose-500/70 rounded-2xl shadow-2xl shadow-rose-950/60 backdrop-blur-md pointer-events-auto overflow-hidden animate-in slide-in-from-top-4 duration-300">
         {/* Header with pulsating alert warning */}
-        <div className="bg-gradient-to-r from-rose-950/90 via-rose-900/70 to-slate-900 p-4 border-b border-rose-500/30 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-600/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 animate-pulse">
-              <AlertTriangle className="w-6 h-6 text-rose-400" />
+        <div className="bg-gradient-to-r from-rose-950/90 via-rose-900/70 to-slate-900 p-3 sm:p-4 border-b border-rose-500/30 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-600/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 animate-pulse">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black text-rose-200">
-                  تنبيه عاجل للمدير: طلبات لم تُقبل منذ 15 دقيقة!
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h3 className="text-sm sm:text-lg font-black text-rose-200 truncate">
+                  تنبيه عاجل للمدير: طلبات لم تُقبل!
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500 text-white animate-pulse">
-                  {overdueTasks.length} {overdueTasks.length === 1 ? 'مهمة متأخرة' : 'مهام متأخرة'}
+                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-rose-500 text-white animate-pulse shrink-0">
+                  {overdueTasks.length} {overdueTasks.length === 1 ? 'مهمة' : 'مهام'}
                 </span>
               </div>
-              <p className="text-xs text-rose-300/80 mt-0.5">
-                مضى أكثر من 15 دقيقة على إرسال المهام التالية دون أن يقوم أي فني بقبولها للبدء بالصيانة
+              <p className="text-[11px] sm:text-xs text-rose-300/80 mt-0.5 truncate">
+                مضى أكثر من 15 دقيقة على إرسال المهام دون قبول
               </p>
             </div>
           </div>
@@ -56,10 +56,10 @@ export const ManagerOverdueModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={onDismiss}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors shrink-0"
             title="إخفاء التنبيه مؤقتاً"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 

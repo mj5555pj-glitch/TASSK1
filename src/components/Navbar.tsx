@@ -21,6 +21,7 @@ interface Props {
   pendingCount?: number;
   inProgressCount?: number;
   onOpenTechManagement?: () => void;
+  onOpenManagerAccount?: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -31,25 +32,27 @@ export const Navbar: React.FC<Props> = ({
   pendingCount = 0,
   inProgressCount = 0,
   onOpenTechManagement,
+  onOpenManagerAccount,
 }) => {
   const isManager = currentUser.role === 'manager';
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-slate-100 w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         {/* Main Header Bar */}
-        <div className="h-16 flex items-center justify-between gap-4">
+        <div className="h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
           {/* Zone 1: Wordmark */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
-              <Wifi className="w-5 h-5" />
+          <div className="flex items-center gap-2 sm:gap-3 shrink min-w-0">
+            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 shrink-0">
+              <Wifi className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
-                  منظومة مهام صيانة الإنترنت
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold tracking-tight text-white truncate max-w-[130px] sm:max-w-none sm:text-lg">
+                  <span className="sm:hidden">صيانة نت</span>
+                  <span className="hidden sm:inline">منظومة مهام صيانة الإنترنت</span>
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 shrink-0">
                   <Database className="w-3 h-3" />
                   <span>فايبر بيس</span>
                 </span>
@@ -119,15 +122,24 @@ export const Navbar: React.FC<Props> = ({
           )}
 
           {/* Account & Role info */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs">
-              {isManager ? (
-                <Shield className="w-4 h-4 text-amber-400" />
-              ) : (
-                <Wrench className="w-4 h-4 text-emerald-400" />
-              )}
-              <span className="text-white font-medium hidden sm:inline">{currentUser.fullName}</span>
-            </div>
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {isManager ? (
+              <button
+                type="button"
+                onClick={onOpenManagerAccount}
+                className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-xs text-amber-200 transition-all cursor-pointer group"
+                title="تعديل بيانات حساب المدير (الاسم، اسم المستخدم، كلمة المرور، الهاتف)"
+              >
+                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 group-hover:scale-110 transition-transform shrink-0" />
+                <span className="text-white font-medium hidden sm:inline max-w-[100px] truncate">{currentUser.fullName}</span>
+                <span className="text-[10px] text-amber-300 bg-amber-500/20 px-1 py-0.2 rounded border border-amber-500/30 shrink-0 font-semibold">حسابي</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs">
+                <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+                <span className="text-white font-medium hidden sm:inline max-w-[100px] truncate">{currentUser.fullName}</span>
+              </div>
+            )}
 
             {/* PWA Install Button for Desktop & Mobile */}
             <PWAInstallButton variant="navbar" />
@@ -135,7 +147,7 @@ export const Navbar: React.FC<Props> = ({
             {/* Logout button */}
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-300 hover:text-red-200 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-300 hover:text-red-200 text-xs font-semibold transition-colors"
               title="تسجيل الخروج"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -144,44 +156,49 @@ export const Navbar: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Mobile Sub-Navigation Bar for Manager */}
+        {/* Mobile Sub-Navigation Bar for Manager - 4 equal grid columns, zero overflow */}
         {isManager && (
-          <div className="flex md:hidden items-center justify-around border-t border-slate-800/80 py-2 text-xs">
+          <div className="grid grid-cols-4 gap-1 md:hidden border-t border-slate-800/80 py-1.5 text-[11px] w-full">
             <button
               onClick={() => onPageChange('dispatch')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${
-                currentPage === 'dispatch' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+                currentPage === 'dispatch' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>إرسال المهام</span>
+              <Send className="w-3.5 h-3.5 mb-0.5" />
+              <span className="truncate w-full text-center">إرسال</span>
             </button>
             <button
               onClick={() => onPageChange('monitoring')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${
-                currentPage === 'monitoring' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all relative ${
+                currentPage === 'monitoring' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Activity className="w-3.5 h-3.5" />
-              <span>المتابعة</span>
+              <Activity className="w-3.5 h-3.5 mb-0.5" />
+              <span className="truncate w-full text-center">المتابعة</span>
+              {(pendingCount > 0 || inProgressCount > 0) && (
+                <span className="absolute top-0.5 right-1 px-1 rounded-full text-[9px] bg-amber-500 text-slate-950 font-black">
+                  {pendingCount + inProgressCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => onPageChange('archive')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${
-                currentPage === 'archive' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400'
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+                currentPage === 'archive' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Archive className="w-3.5 h-3.5" />
-              <span>الأرشيف</span>
+              <Archive className="w-3.5 h-3.5 mb-0.5" />
+              <span className="truncate w-full text-center">الأرشيف</span>
             </button>
             {onOpenTechManagement && (
               <button
                 type="button"
                 onClick={onOpenTechManagement}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-emerald-400 font-bold hover:bg-slate-800"
+                className="flex flex-col items-center justify-center py-1 px-1 rounded-lg text-emerald-400 font-bold hover:bg-slate-800"
               >
-                <Wrench className="w-3.5 h-3.5" />
-                <span>الفنيين</span>
+                <Wrench className="w-3.5 h-3.5 mb-0.5" />
+                <span className="truncate w-full text-center">الفنيين</span>
               </button>
             )}
           </div>

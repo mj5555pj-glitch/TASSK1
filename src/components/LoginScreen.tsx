@@ -112,7 +112,7 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
         </div>
 
         {/* Login Card */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur-md">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-300 font-medium flex items-start gap-2">
@@ -171,18 +171,18 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
           </form>
         </div>
 
-        {/* Feature Highlights */}
-        <div className="mt-6 grid grid-cols-3 gap-2 text-center text-[11px] text-slate-400">
-          <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80">
-            <Clock className="w-4 h-4 mx-auto mb-1 text-blue-400" />
+        {/* Feature Highlights - 3 columns on tablet/desktop, stacked or 3-box on mobile */}
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-[11px] text-slate-400">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0">
+            <Clock className="w-4 h-4 sm:mx-auto sm:mb-1 text-blue-400 shrink-0" />
             <span>توثيق وقت الإرسال والقبول والإنجاز</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80">
-            <PhoneCall className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0">
+            <PhoneCall className="w-4 h-4 sm:mx-auto sm:mb-1 text-emerald-400 shrink-0" />
             <span>اتصال ورسائل واتساب مسبقة الصياغة</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80">
-            <Calendar className="w-4 h-4 mx-auto mb-1 text-indigo-400" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0">
+            <Calendar className="w-4 h-4 sm:mx-auto sm:mb-1 text-indigo-400 shrink-0" />
             <span>حفظ السجلات لأسبوع وحذف تلقائي</span>
           </div>
         </div>

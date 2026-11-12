@@ -50,89 +50,9 @@ export const DEFAULT_USERS: User[] = [
   },
 ];
 
-// Seed sample tasks created recently (within the last few days to satisfy the 7-day window)
+// Initial tasks: returns empty array (no demo tasks)
 export function getInitialTasks(): MaintenanceTask[] {
-  const now = Date.now();
-  const minutesAgo = (mins: number) => new Date(now - mins * 60 * 1000).toISOString();
-  const hoursAgo = (hours: number) => new Date(now - hours * 3600 * 1000).toISOString();
-  const daysAgo = (days: number) => new Date(now - days * 24 * 3600 * 1000).toISOString();
-
-  return [
-    {
-      id: 'tsk_101',
-      taskNumber: '#TSK-1042',
-      taskType: 'صيانة',
-      subscriberName: 'حيدر عبد الرضا',
-      phone: '07801234567',
-      notes: 'كابل الفايبر مقطوع عند مدخل البناية بسبب أعمال حفر الشارع. ضوء LOS أحمر بالراوتر.',
-      assignedToId: 'user_tech1',
-      assignedToName: 'عمر الصالح',
-      createdBy: 'المهندس أحمد العلي',
-      createdAt: minutesAgo(35),
-      acceptedAt: null,
-      completedAt: null,
-      durationSeconds: null,
-      durationFormatted: null,
-      expiresAt: new Date(now - 35 * 60 * 1000 + SEVEN_DAYS_MS).toISOString(),
-      status: 'pending',
-    },
-    {
-      id: 'tsk_102',
-      taskNumber: '#TSK-1041',
-      taskType: 'ضعف',
-      subscriberName: 'سعد جاسم المحمداوي',
-      phone: '07705556677',
-      notes: 'انحراف الصحن الهوائي بسبب الرياح الشديدة. الإشارة هابطة إلى -85 dBm.',
-      assignedToId: 'user_tech1',
-      assignedToName: 'عمر الصالح',
-      createdBy: 'المهندس أحمد العلي',
-      createdAt: hoursAgo(2),
-      acceptedAt: minutesAgo(28),
-      completedAt: null,
-      durationSeconds: null,
-      durationFormatted: null,
-      expiresAt: new Date(now - 2 * 3600 * 1000 + SEVEN_DAYS_MS).toISOString(),
-      status: 'in_progress',
-    },
-    {
-      id: 'tsk_103',
-      taskNumber: '#TSK-1040',
-      taskType: 'تنصيب',
-      subscriberName: 'مريم شاكر البصري',
-      phone: '07509876543',
-      notes: 'الراوتر تم تصفيره بالخطأ ويحتاج ضبط اسم المستخدم وكلمة مرور الـ PPPoE وقنوات التردد.',
-      assignedToId: 'user_tech2',
-      assignedToName: 'يوسف النجار',
-      createdBy: 'المهندس أحمد العلي',
-      createdAt: hoursAgo(5),
-      acceptedAt: hoursAgo(4),
-      completedAt: hoursAgo(3),
-      durationSeconds: 3240, // 54 mins
-      durationFormatted: '54 دقيقة',
-      completionNotes: 'تم ضبط إعدادات الـ PPPoE وتغيير القناة إلى 5GHz وتجربة السرعة بنجاح.',
-      expiresAt: new Date(now - 5 * 3600 * 1000 + SEVEN_DAYS_MS).toISOString(),
-      status: 'completed',
-    },
-    {
-      id: 'tsk_104',
-      taskNumber: '#TSK-1039',
-      taskType: 'مشاكل اخرى',
-      subscriberName: 'حسين علي التميمي',
-      phone: '07701122334',
-      notes: 'المشترك يشكو من تقطع أثناء البث المباشر. الباقة 40 ميغابت وتصله 5 ميغابت فقط.',
-      assignedToId: 'user_tech3',
-      assignedToName: 'كمال حسن',
-      createdBy: 'المهندس أحمد العلي',
-      createdAt: daysAgo(2),
-      acceptedAt: daysAgo(2),
-      completedAt: daysAgo(2),
-      durationSeconds: 2280, // 38 mins
-      durationFormatted: '38 دقيقة',
-      completionNotes: 'تم فحص الكابل الداخلي وتبديل فيشة RJ45 مع إعادة توجيه التردد.',
-      expiresAt: new Date(now - 2 * 24 * 3600 * 1000 + SEVEN_DAYS_MS).toISOString(),
-      status: 'completed',
-    },
-  ];
+  return [];
 }
 
 // Broadcast channel for multi-tab synchronization
@@ -235,15 +155,16 @@ export function getTasks(): MaintenanceTask[] {
       tasks = JSON.parse(raw);
     }
 
-    // Auto-clean tasks older than 7 days
+    // Strip demo tasks and auto-clean tasks older than 7 days
+    const DEMO_TASK_IDS = ['tsk_101', 'tsk_102', 'tsk_103', 'tsk_104'];
     const now = Date.now();
-    const validTasks = tasks.filter((task) => !isTaskOlderThanOneWeek(task.createdAt, now));
+    const validTasks = tasks.filter((task) => 
+      !DEMO_TASK_IDS.includes(task.id) && 
+      !isTaskOlderThanOneWeek(task.createdAt, now)
+    );
 
     if (validTasks.length !== tasks.length) {
-      const removedCount = tasks.length - validTasks.length;
       saveTasks(validTasks);
-      recordCleanupLog(removedCount);
-      notifyTaskSync('TASKS_CLEANED', { removedCount });
       return validTasks;
     }
 

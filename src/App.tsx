@@ -11,7 +11,8 @@ import {
   completeTaskInFirebase, 
   deleteTaskFromFirebase, 
   purgeExpiredTasksFromFirebase,
-  reassignTaskToAllInFirebase 
+  reassignTaskToAllInFirebase,
+  purgeAllDemoTasks 
 } from './firebase';
 import { playNewTaskAlertSound, playSuccessSound, playOverdueAlertSound } from './utils/audio';
 import { sendDevicePushNotification, sendManagerOverdueNotification } from './utils/notifications';
@@ -26,6 +27,7 @@ import { PushNotificationToast } from './components/PushNotificationToast';
 import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
 import { TechniciansManagementModal } from './components/TechniciansManagementModal';
 import { ManagerOverdueModal } from './components/ManagerOverdueModal';
+import { ManagerAccountModal } from './components/ManagerAccountModal';
 
 export default function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -36,6 +38,7 @@ export default function App() {
   const [activePushToastTask, setActivePushToastTask] = useState<MaintenanceTask | null>(null);
   const [whatsAppModalTask, setWhatsAppModalTask] = useState<MaintenanceTask | null>(null);
   const [showTechManagementModal, setShowTechManagementModal] = useState(false);
+  const [showManagerAccountModal, setShowManagerAccountModal] = useState(false);
   const [dismissedOverdueTaskIds, setDismissedOverdueTaskIds] = useState<Set<string>>(new Set());
 
   const knownTaskIdsRef = useRef<Set<string>>(new Set());
@@ -50,6 +53,9 @@ export default function App() {
 
   // Initialize users & session & live Firestore listeners
   useEffect(() => {
+    // Purge any remaining demo tasks immediately
+    purgeAllDemoTasks().catch(() => {});
+
     const localUsers = getUsers();
     setUsers(localUsers);
 
@@ -229,6 +235,14 @@ export default function App() {
     playSuccessSound();
   };
 
+  // Manager Self Account Update
+  const handleSaveManager = async (updatedManager: User) => {
+    await saveUserToFirebase(updatedManager);
+    setLoggedUser(updatedManager);
+    setCurrentUser(updatedManager);
+    playSuccessSound();
+  };
+
   // Reassign unaccepted / overdue task to ALL technicians immediately
   const handleReassignToAll = async (taskId: string) => {
     await reassignTaskToAllInFirebase(taskId);
@@ -265,7 +279,7 @@ export default function App() {
     : [];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white" dir="rtl">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white" dir="rtl">
       {/* Navbar with Page Switcher & Technician Management */}
       <Navbar
         currentUser={currentUser}
@@ -275,10 +289,11 @@ export default function App() {
         pendingCount={pendingCount}
         inProgressCount={inProgressCount}
         onOpenTechManagement={() => setShowTechManagementModal(true)}
+        onOpenManagerAccount={() => setShowManagerAccountModal(true)}
       />
 
       {/* Main Pages View */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-x-hidden">
         {currentUser.role === 'technician' ? (
           <TechnicianView
             technician={currentUser}
