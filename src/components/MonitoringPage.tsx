@@ -186,14 +186,14 @@ export const MonitoringPage: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* بطاقة المهام المتوقفة مؤقتاً */}
+        {/* بطاقة المهام المعلقة من قبل الفني */}
         <div className="bg-slate-900 border border-orange-500/30 rounded-2xl p-3.5 sm:p-5 shadow-lg shadow-orange-950/10 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="text-[11px] sm:text-xs font-bold text-orange-300 block mb-0.5 truncate">متوقفة مؤقتاً</span>
+            <span className="text-[11px] sm:text-xs font-bold text-orange-300 block mb-0.5 truncate">المهام المعلقة</span>
             <div className="text-xl sm:text-3xl font-black text-orange-400 tabular-nums">
               {pausedTasks.length} <span className="text-[11px] sm:text-xs font-normal text-slate-400">مهمة</span>
             </div>
-            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">معلقة مؤقتاً لحين الاستئناف</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">معلقة لحين الاستئناف</span>
           </div>
           <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-orange-500/15 text-orange-400 border border-orange-500/20 flex items-center justify-center shrink-0">
             <PauseCircle className="w-4 h-4 sm:w-6 sm:h-6" />
@@ -385,12 +385,12 @@ export const MonitoringPage: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Section 1.5: المهام المتوقفة مؤقتاً (Paused / Suspended) */}
+      {/* Section 1.5: المهام المعلقة من قبل الفني */}
       {filteredPaused.length > 0 && (
         <div className="space-y-3 pt-4">
           <div className="flex items-center gap-2 text-orange-400 font-bold text-sm">
             <PauseCircle className="w-4 h-4" />
-            <span>المهام المتوقفة مؤقتاً / المعلقة ({filteredPaused.length})</span>
+            <span>المهام المعلقة من قبل الفني ({filteredPaused.length})</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -412,7 +412,7 @@ export const MonitoringPage: React.FC<Props> = ({
 
                     <div className="flex items-center gap-1.5 bg-orange-500/15 text-orange-300 border border-orange-500/30 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0">
                       <PauseCircle className="w-3.5 h-3.5 text-orange-400" />
-                      <span>متوقفة مؤقتاً</span>
+                      <span>مهمة معلقة</span>
                     </div>
                   </div>
 
@@ -452,7 +452,7 @@ export const MonitoringPage: React.FC<Props> = ({
 
                   {task.pauseReason && (
                     <div className="mt-2.5 p-2.5 bg-orange-950/40 border border-orange-500/30 rounded-xl text-xs text-orange-200">
-                      <span className="text-orange-400 font-semibold block mb-0.5">سبب الإيقاف المؤقت:</span>
+                      <span className="text-orange-400 font-semibold block mb-0.5">سبب تعليق المهمة:</span>
                       {task.pauseReason}
                     </div>
                   )}
@@ -470,7 +470,7 @@ export const MonitoringPage: React.FC<Props> = ({
                       <span className="text-slate-300 font-medium">{formatArabicDateTime(task.createdAt)}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">وقت الإيقاف:</span>
+                      <span className="text-slate-500 block">وقت التعليق:</span>
                       <span className="text-orange-300 font-medium">{formatArabicDateTime(task.pausedAt ?? null)}</span>
                     </div>
                     <div className="xs:col-span-2 sm:col-span-1">

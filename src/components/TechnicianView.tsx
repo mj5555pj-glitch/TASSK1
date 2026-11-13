@@ -138,6 +138,7 @@ export const TechnicianView: React.FC<Props> = ({
       await onPauseTask(task, pauseReason);
       setPausingTaskId(null);
       setPauseReason('');
+      setActiveTab('paused');
     } finally {
       setActionLoading(false);
     }
@@ -147,6 +148,7 @@ export const TechnicianView: React.FC<Props> = ({
     try {
       setActionLoading(true);
       await onResumeTask(taskId);
+      setActiveTab('in_progress');
     } finally {
       setActionLoading(false);
     }
@@ -156,6 +158,7 @@ export const TechnicianView: React.FC<Props> = ({
     try {
       setActionLoading(true);
       await onAcceptTask(taskId);
+      setActiveTab('in_progress');
     } finally {
       setActionLoading(false);
     }
@@ -223,8 +226,8 @@ export const TechnicianView: React.FC<Props> = ({
               <div className="text-base sm:text-lg font-black text-blue-400 tabular-nums">{inProgressTasks.length} مهمة</div>
             </div>
             <div className="p-2 sm:px-3 sm:py-2 rounded-xl bg-orange-500/10 border border-orange-500/30 text-center sm:text-right">
-              <div className="text-[10px] sm:text-[11px] text-orange-300 font-medium">متوقفة مؤقتاً</div>
-              <div className="text-base sm:text-lg font-black text-orange-400 tabular-nums">{pausedTasks.length} معلقة</div>
+              <div className="text-[10px] sm:text-[11px] text-orange-300 font-medium">المهام المعلقة</div>
+              <div className="text-base sm:text-lg font-black text-orange-400 tabular-nums">{pausedTasks.length} مهمة</div>
             </div>
             <div className="col-span-2 sm:col-span-1 p-2 sm:px-3 sm:py-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-center sm:text-right">
               <div className="text-[10px] sm:text-[11px] text-teal-300 font-medium">المنجزة</div>
@@ -388,7 +391,7 @@ export const TechnicianView: React.FC<Props> = ({
           }`}
         >
           <PauseCircle className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">الموقفة مؤقتاً</span>
+          <span className="truncate">المهام المعلقة</span>
           {pausedTasks.length > 0 && (
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums font-black shrink-0 ${
               activeTab === 'paused' ? 'bg-slate-950 text-orange-400' : 'bg-orange-500/20 text-orange-300'
@@ -437,7 +440,7 @@ export const TechnicianView: React.FC<Props> = ({
               : activeTab === 'in_progress'
               ? 'لا توجد مهام جارية قيد التنفيذ حالياً'
               : activeTab === 'paused'
-              ? 'لا توجد مهام موقفة مؤقتاً أو معلقة حالياً'
+              ? 'لا توجد مهام معلقة حالياً'
               : activeTab === 'completed'
               ? 'لا توجد مهام منجزة بعد'
               : 'لا توجد مهام مسجلة'}
@@ -446,7 +449,7 @@ export const TechnicianView: React.FC<Props> = ({
             {activeTab === 'broadcast'
               ? 'عندما يقوم المدير بإرسال مهمة للكل ستظهر في بطاقة المهام العامة ويمكن لأي فني أخذها.'
               : activeTab === 'paused'
-              ? 'يمكنك إيقاف أي مهمة جارية مؤقتاً إذا استدعى الأمر وسيتم حفظها هنا لاستئنافها لاحقاً.'
+              ? 'عند تعليق أي مهمة جارية بعد قبولها ستتم إضافتها تلقائياً هنا في قسم المهام المعلقة لاستئنافها لاحقاً.'
               : 'عندما يقوم المدير بإرسال مهمة جديدة ستظهر في بطاقة انتظار الطلبات مباشرة عبر فايبر بيس.'}
           </p>
         </div>
@@ -506,7 +509,7 @@ export const TechnicianView: React.FC<Props> = ({
                     {isPaused && (
                       <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-orange-500/15 text-orange-300 border border-orange-500/30 flex items-center gap-1.5">
                         <PauseCircle className="w-3.5 h-3.5 text-orange-400" />
-                        <span>موقفة مؤقتاً (معلقة)</span>
+                        <span>مهمة معلقة</span>
                       </span>
                     )}
                     {isCompleted && (
@@ -597,13 +600,13 @@ export const TechnicianView: React.FC<Props> = ({
                     </>
                   )}
 
-                  {/* سبب الإيقاف المؤقت / التعليق إن وجد */}
+                  {/* سبب تعليق المهمة إن وجد */}
                   {isPaused && (
                     <div className="mt-2 p-2.5 rounded-xl bg-orange-950/30 border border-orange-500/30 text-xs">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <span className="font-bold text-orange-300 flex items-center gap-1.5">
                           <PauseCircle className="w-3.5 h-3.5 text-orange-400" />
-                          <span>تم إيقاف المهمة مؤقتاً</span>
+                          <span>تم تعليق المهمة</span>
                         </span>
                         {task.pausedAt && (
                           <span className="text-[10px] text-orange-300/80">
@@ -642,7 +645,7 @@ export const TechnicianView: React.FC<Props> = ({
                     <div>
                       <span className="text-slate-500 block">وقت الانتهاء:</span>
                       <span className="text-slate-300 font-medium">
-                        {task.completedAt ? formatArabicDateTime(task.completedAt) : (isPaused ? 'موقفة مؤقتاً' : 'قيد الانتظار')}
+                        {task.completedAt ? formatArabicDateTime(task.completedAt) : (isPaused ? 'مهمة معلقة' : 'قيد الانتظار')}
                       </span>
                     </div>
 
@@ -737,7 +740,7 @@ export const TechnicianView: React.FC<Props> = ({
                       ) : pausingTaskId === task.id ? (
                         <div className="space-y-2 p-3 bg-orange-950/20 border border-orange-500/40 rounded-xl">
                           <label className="block text-xs font-semibold text-orange-300">
-                            سبب الإيقاف المؤقت / التعليق (اختياري):
+                            سبب تعليق المهمة (اختياري):
                           </label>
                           <textarea
                             value={pauseReason}
@@ -754,7 +757,7 @@ export const TechnicianView: React.FC<Props> = ({
                               className="flex-1 py-2 bg-orange-500 hover:bg-orange-400 text-slate-950 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
                             >
                               <PauseCircle className="w-3.5 h-3.5" />
-                              <span>تأكيد الإيقاف المؤقت</span>
+                              <span>تأكيد تعليق المهمة ونقلها للمعلقة</span>
                             </button>
                             <button
                               type="button"
@@ -802,10 +805,10 @@ export const TechnicianView: React.FC<Props> = ({
                             disabled={actionLoading}
                             onClick={() => handleStartPause(task.id)}
                             className="py-2.5 px-3.5 bg-orange-500/15 hover:bg-orange-500 text-orange-300 hover:text-slate-950 border border-orange-500/30 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
-                            title="إيقاف المهمة مؤقتاً أو تعليقها لحين توفر المشترك أو المواد"
+                            title="تعليق المهمة ونقلها إلى قائمة المهام المعلقة"
                           >
                             <PauseCircle className="w-4 h-4" />
-                            <span>إيقاف مؤقت</span>
+                            <span>تعليق المهمة</span>
                           </button>
                         </div>
                       )}
