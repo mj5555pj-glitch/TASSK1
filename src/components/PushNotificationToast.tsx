@@ -1,22 +1,17 @@
 import React from 'react';
 import { MaintenanceTask } from '../types';
-import { Bell, Play, MessageSquare, X, Phone, User as UserIcon } from 'lucide-react';
-import { getTelUrl, getWhatsAppUrl } from '../utils/whatsapp';
+import { Bell, Play, X, Lock } from 'lucide-react';
 
 interface Props {
   task: MaintenanceTask;
-  technicianName: string;
   onAccept: (taskId: string) => void;
   onDismiss: () => void;
-  onOpenWhatsApp: (task: MaintenanceTask) => void;
 }
 
 export const PushNotificationToast: React.FC<Props> = ({
   task,
-  technicianName,
   onAccept,
   onDismiss,
-  onOpenWhatsApp,
 }) => {
   return (
     <div 
@@ -56,33 +51,20 @@ export const PushNotificationToast: React.FC<Props> = ({
           </button>
         </div>
 
-        {/* Task Details Info */}
-        <div className="mt-3 p-2.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1.5 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 flex items-center gap-1">
-              <UserIcon className="w-3.5 h-3.5 text-slate-500" />
-              <span>المشترك:</span>
-            </span>
-            <span className="font-bold text-white">{task.subscriberName}</span>
+        {/* Hidden Details Notice until Accepted */}
+        <div className="mt-3 p-3 rounded-xl bg-slate-950/90 border border-amber-500/30 flex items-center gap-2.5 text-xs text-amber-200">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+            <Lock className="w-4 h-4" />
           </div>
-
-          <div className="flex items-center justify-between pt-1 border-t border-slate-800/80">
-            <span className="text-slate-400 flex items-center gap-1">
-              <Phone className="w-3.5 h-3.5 text-slate-500" />
-              <span>الهاتف:</span>
+          <div className="leading-relaxed">
+            <span className="font-bold block text-amber-300">تفاصيل المشترك مخفية قبل القبول</span>
+            <span className="text-[11px] text-slate-400">
+              اضغط على زر قبول المهمة لإظهار اسم المشترك والهاتف والملاحظات فوراً.
             </span>
-            <span className="font-mono font-semibold text-slate-200" dir="ltr">{task.phone}</span>
           </div>
-
-          {task.notes && (
-            <div className="pt-1 border-t border-slate-800/80 text-[11px] text-slate-300">
-              <span className="text-slate-400 font-medium">ملاحظات: </span>
-              <span>{task.notes}</span>
-            </div>
-          )}
         </div>
 
-        {/* Interactive Quick Actions */}
+        {/* Interactive Quick Action */}
         <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
@@ -90,28 +72,11 @@ export const PushNotificationToast: React.FC<Props> = ({
               onAccept(task.id);
               onDismiss();
             }}
-            className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
           >
             <Play className="w-3.5 h-3.5" />
-            <span>قبول المهمة والبدء</span>
+            <span>قبول المهمة والبدء وإظهار التفاصيل</span>
           </button>
-
-          <button
-            type="button"
-            onClick={() => onOpenWhatsApp(task)}
-            className="p-2 bg-slate-800 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl border border-slate-700 hover:border-emerald-500 transition-colors"
-            title="فتح رسالة الواتساب الجاهزة"
-          >
-            <MessageSquare className="w-4 h-4" />
-          </button>
-
-          <a
-            href={getTelUrl(task.phone)}
-            className="p-2 bg-slate-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl border border-slate-700 hover:border-blue-500 transition-colors"
-            title="اتصال هاتفي مباشر"
-          >
-            <Phone className="w-4 h-4" />
-          </a>
         </div>
       </div>
     </div>

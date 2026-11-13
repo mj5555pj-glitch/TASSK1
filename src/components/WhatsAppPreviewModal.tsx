@@ -24,10 +24,18 @@ import {
 interface Props {
   task: MaintenanceTask;
   technicianName: string;
+  customTemplate?: string;
+  onEditGlobalTemplate?: () => void;
   onClose: () => void;
 }
 
-export const WhatsAppPreviewModal: React.FC<Props> = ({ task, technicianName, onClose }) => {
+export const WhatsAppPreviewModal: React.FC<Props> = ({
+  task,
+  technicianName,
+  customTemplate,
+  onEditGlobalTemplate,
+  onClose,
+}) => {
   // Mode selection: 'message' | 'call'
   const [activeTab, setActiveTab] = useState<'message' | 'call'>('message');
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>('964'); // Default Iraq 964
@@ -35,10 +43,12 @@ export const WhatsAppPreviewModal: React.FC<Props> = ({ task, technicianName, on
   const [copied, setCopied] = useState(false);
 
   const defaultMessage = buildWhatsAppMessage(
-    task.subscriberName, 
-    technicianName, 
-    task.taskType, 
-    task.notes
+    task.subscriberName,
+    technicianName,
+    task.taskType,
+    task.notes,
+    customTemplate,
+    task.taskNumber
   );
   const [customMessage, setCustomMessage] = useState(defaultMessage);
 
@@ -189,18 +199,32 @@ export const WhatsAppPreviewModal: React.FC<Props> = ({ task, technicianName, on
         {/* Tab 1 Content: إرسال رسالة */}
         {activeTab === 'message' && (
           <div className="space-y-3 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="text-xs font-semibold text-slate-300">
                 نص الرسالة المسبقة المجهزة للإرسال:
               </label>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors"
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'تم النسخ بنجاح' : 'نسخ نص الرسالة'}</span>
-              </button>
+              <div className="flex items-center gap-3">
+                {onEditGlobalTemplate && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onEditGlobalTemplate();
+                    }}
+                    className="text-[11px] text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors"
+                  >
+                    تعديل القالب العام للجميع
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'تم النسخ بنجاح' : 'نسخ نص الرسالة'}</span>
+                </button>
+              </div>
             </div>
 
             <textarea

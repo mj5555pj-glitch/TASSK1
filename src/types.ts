@@ -22,7 +22,7 @@ export const TASK_TYPES: { id: AllowedTaskType; label: string; description: stri
   { id: 'مشاكل اخرى', label: 'مشاكل اخرى', description: 'بلاغات واستفسارات فنية أخرى لم تذكر أعلاه', icon: 'help-circle' },
 ];
 
-export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+export type TaskStatus = 'pending' | 'in_progress' | 'paused' | 'completed';
 
 export interface MaintenanceTask {
   id: string;
@@ -36,12 +36,18 @@ export interface MaintenanceTask {
   createdBy: string;
   createdAt: string; // ISO string
   acceptedAt: string | null; // ISO string
+  pausedAt?: string | null; // ISO string when paused
+  resumedAt?: string | null; // ISO string when last resumed
+  pauseReason?: string; // Reason for pausing/holding the task
+  accumulatedSeconds?: number; // Active working seconds accumulated prior to pause
   completedAt: string | null; // ISO string
   durationSeconds: number | null; // Calculated duration in seconds
   durationFormatted: string | null; // e.g. "35 دقيقة"
   completionNotes?: string;
   expiresAt: string; // 7 days from createdAt ISO
   status: TaskStatus;
+  lastBroadcastAt?: string;
+  resentCount?: number;
 }
 
 export type PageView = 'dispatch' | 'monitoring' | 'technician_queue' | 'archive';
@@ -50,3 +56,10 @@ export interface CleanupLog {
   timestamp: string;
   deletedCount: number;
 }
+
+export interface WhatsAppTemplateSettings {
+  template: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+

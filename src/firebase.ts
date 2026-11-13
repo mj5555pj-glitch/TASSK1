@@ -247,11 +247,11 @@ export function subscribeToFirestoreUsers(
         users.push(docSnap.data() as import('./types').User);
       });
 
-      // Always guarantee the manager account exists
-      const hasAdmin = users.some((u) => u.username.toLowerCase() === 'admin');
-      if (!hasAdmin && DEFAULT_USERS.length > 0) {
+      // Always guarantee at least one manager account exists
+      const hasManager = users.some((u) => u.role === 'manager' || u.id === 'user_admin');
+      if (!hasManager && DEFAULT_USERS.length > 0) {
         users.unshift(DEFAULT_USERS[0]);
-        // Also persist admin back to Firestore
+        // Also persist manager back to Firestore
         setDoc(doc(db, USERS_COLLECTION, DEFAULT_USERS[0].id), DEFAULT_USERS[0]).catch(() => {});
       }
 
@@ -334,7 +334,49 @@ export async function reassignTaskToAllInFirebase(taskId: string): Promise<void>
 }
 
 /**
- * Complete task in Firebase (Records completed time, calculated duration, and status to completed)
+ * Pause / suspend a task temporarily in Firebase, saving accumulated working seconds
+ */
+export async function pauseTaskInFirebase(
+  task: MaintenanceTask,
+  pauseReason?: string
+): Promise<void> {
+  const nowIso = new Date().toISOString();
+  const activeStartIso = task.resumedAt || task.acceptedAt || task.createdAt;
+  const currentSegmentSecs = calculateDurationSeconds(activeStartIso, nowIso);
+  const totalAccumulated = (task.accumulatedSeconds || 0) + currentSegmentSecs;
+
+  try {
+    const taskDocRef = doc(db, TASKS_COLLECTION, task.id);
+    await updateDoc(taskDocRef, {
+      status: 'paused',
+      pausedAt: nowIso,
+      pauseReason: pauseReason?.trim() || '',
+      accumulatedSeconds: totalAccumulated,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${task.id}`);
+  }
+}
+
+/**
+ * Resume a paused task in Firebase
+ */
+export async function resumeTaskInFirebase(taskId: string): Promise<void> {
+  const nowIso = new Date().toISOString();
+  try {
+    const taskDocRef = doc(db, TASKS_COLLECTION, taskId);
+    await updateDoc(taskDocRef, {
+      status: 'in_progress',
+      resumedAt: nowIso,
+      pausedAt: null,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${taskId}`);
+  }
+}
+
+/**
+ * Complete task in Firebase (Records completed time, calculated duration across pauses, and status to completed)
  */
 export async function completeTaskInFirebase(
   task: MaintenanceTask,
@@ -343,8 +385,11 @@ export async function completeTaskInFirebase(
   const now = new Date();
   const completedAtIso = now.toISOString();
 
-  const startIso = task.acceptedAt || task.createdAt;
-  const durationSecs = calculateDurationSeconds(startIso, completedAtIso);
+  let durationSecs = task.accumulatedSeconds || 0;
+  if (task.status !== 'paused') {
+    const startIso = task.resumedAt || task.acceptedAt || task.createdAt;
+    durationSecs += calculateDurationSeconds(startIso, completedAtIso);
+  }
   const formattedDuration = formatDurationArabic(durationSecs);
 
   try {
@@ -358,6 +403,68 @@ export async function completeTaskInFirebase(
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${task.id}`);
+  }
+}
+
+/**
+ * Update task information or switch assigned technician in Firebase Firestore
+ */
+export async function updateTaskInFirebase(
+  taskId: string,
+  updates: Partial<MaintenanceTask>
+): Promise<void> {
+  try {
+    const taskDocRef = doc(db, TASKS_COLLECTION, taskId);
+    await updateDoc(taskDocRef, updates as Record<string, unknown>);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${taskId}`);
+    throw error;
+  }
+}
+
+/**
+ * Resend an existing pending or paused task to the selected technician(s) as a fresh pending dispatch
+ */
+export async function resendExistingTaskInFirebase(
+  task: MaintenanceTask,
+  overrides: {
+    taskType: AllowedTaskType;
+    subscriberName: string;
+    phone: string;
+    notes: string;
+    assignedToId: string;
+    assignedToName: string;
+  }
+): Promise<void> {
+  const now = new Date();
+  const nowIso = now.toISOString();
+
+  try {
+    const taskDocRef = doc(db, TASKS_COLLECTION, task.id);
+    await updateDoc(taskDocRef, {
+      taskType: overrides.taskType,
+      subscriberName: overrides.subscriberName.trim(),
+      phone: overrides.phone.trim(),
+      notes: overrides.notes.trim(),
+      assignedToId: overrides.assignedToId,
+      assignedToName: overrides.assignedToName,
+      status: 'pending',
+      createdAt: nowIso,
+      lastBroadcastAt: nowIso,
+      acceptedAt: null,
+      pausedAt: null,
+      resumedAt: null,
+      pauseReason: '',
+      accumulatedSeconds: 0,
+      completedAt: null,
+      durationSeconds: null,
+      durationFormatted: null,
+      expiresAt: new Date(now.getTime() + SEVEN_DAYS_MS).toISOString(),
+      resentCount: (task.resentCount || 0) + 1,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${task.id}`);
+    throw error;
   }
 }
 
@@ -392,3 +499,66 @@ export async function purgeExpiredTasksFromFirebase(tasks: MaintenanceTask[]): P
 
   return purgedCount;
 }
+
+const SETTINGS_COLLECTION = 'settings';
+const WHATSAPP_TEMPLATE_DOC_ID = 'whatsapp';
+const WHATSAPP_TEMPLATE_LOCAL_KEY = 'isp_whatsapp_template_v1';
+
+/**
+ * Subscribe to the manager-configured global WhatsApp message template in Firestore
+ */
+export function subscribeToWhatsAppTemplate(
+  onUpdate: (template: string) => void
+): Unsubscribe {
+  // Immediately load cached template if available
+  try {
+    const cached = localStorage.getItem(WHATSAPP_TEMPLATE_LOCAL_KEY);
+    if (cached && cached.trim().length > 0) {
+      onUpdate(cached);
+    }
+  } catch {
+    // Ignore storage errors
+  }
+
+  const docRef = doc(db, SETTINGS_COLLECTION, WHATSAPP_TEMPLATE_DOC_ID);
+  return onSnapshot(
+    docRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data() as import('./types').WhatsAppTemplateSettings;
+        if (typeof data.template === 'string' && data.template.trim().length > 0) {
+          try {
+            localStorage.setItem(WHATSAPP_TEMPLATE_LOCAL_KEY, data.template);
+          } catch {
+            // Ignore
+          }
+          onUpdate(data.template);
+        }
+      }
+    },
+    (error) => {
+      console.warn('Could not subscribe to WhatsApp template settings:', error);
+    }
+  );
+}
+
+/**
+ * Save manager-edited WhatsApp message template to Firestore
+ */
+export async function saveWhatsAppTemplateToFirebase(
+  settings: import('./types').WhatsAppTemplateSettings
+): Promise<void> {
+  try {
+    localStorage.setItem(WHATSAPP_TEMPLATE_LOCAL_KEY, settings.template);
+  } catch {
+    // Ignore
+  }
+
+  try {
+    await setDoc(doc(db, SETTINGS_COLLECTION, WHATSAPP_TEMPLATE_DOC_ID), settings, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `${SETTINGS_COLLECTION}/${WHATSAPP_TEMPLATE_DOC_ID}`);
+    throw error;
+  }
+}
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MaintenanceTask } from '../types';
+import { MaintenanceTask, User } from '../types';
 import { 
   formatArabicDateTime, 
   formatDigitalTimer, 
@@ -9,6 +9,7 @@ import {
 } from '../utils/time';
 import { getTelUrl } from '../utils/whatsapp';
 import { WhatsAppPreviewModal } from './WhatsAppPreviewModal';
+import { TaskEditModal, TaskModalMode, TaskEditPayload } from './TaskEditModal';
 import { 
   Clock, 
   Play, 
@@ -22,19 +23,32 @@ import {
   Database,
   Radio,
   AlertTriangle,
-  Users
+  Users,
+  PauseCircle,
+  Edit3,
+  RotateCw
 } from 'lucide-react';
 
 interface Props {
   tasks: MaintenanceTask[];
+  technicians: User[];
+  whatsappTemplate?: string;
+  onOpenWhatsAppTemplate?: () => void;
   onDeleteTask: (taskId: string) => Promise<void>;
+  onUpdateTask: (taskId: string, updates: Partial<MaintenanceTask>) => Promise<void>;
+  onResendExistingTask: (task: MaintenanceTask, overrides: TaskEditPayload) => Promise<void>;
   onCompleteTask?: (task: MaintenanceTask, notes?: string) => Promise<void>;
   onReassignToAll?: (taskId: string) => Promise<void>;
 }
 
 export const MonitoringPage: React.FC<Props> = ({
   tasks,
+  technicians,
+  whatsappTemplate,
+  onOpenWhatsAppTemplate,
   onDeleteTask,
+  onUpdateTask,
+  onResendExistingTask,
   onCompleteTask,
   onReassignToAll,
 }) => {
@@ -42,6 +56,7 @@ export const MonitoringPage: React.FC<Props> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [selectedWhatsAppTask, setSelectedWhatsAppTask] = useState<MaintenanceTask | null>(null);
+  const [editingTaskState, setEditingTaskState] = useState<{ task: MaintenanceTask; mode: TaskModalMode } | null>(null);
 
   // Live timer update
   useEffect(() => {
@@ -49,8 +64,13 @@ export const MonitoringPage: React.FC<Props> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const pendingTasks = tasks.filter((t) => t.status === 'pending' || (!t.acceptedAt && !t.completedAt));
-  const inProgressTasks = tasks.filter((t) => t.status === 'in_progress' || (t.acceptedAt && !t.completedAt));
+  const pendingTasks = tasks.filter(
+    (t) => t.status === 'pending' || (!t.acceptedAt && !t.completedAt && t.status !== 'paused')
+  );
+  const inProgressTasks = tasks.filter(
+    (t) => t.status !== 'paused' && !t.completedAt && (t.status === 'in_progress' || !!t.acceptedAt)
+  );
+  const pausedTasks = tasks.filter((t) => t.status === 'paused' && !t.completedAt);
 
   const filterTasks = (taskList: MaintenanceTask[]) => {
     return taskList.filter((t) => {
@@ -66,6 +86,7 @@ export const MonitoringPage: React.FC<Props> = ({
 
   const filteredPending = filterTasks(pendingTasks);
   const filteredInProgress = filterTasks(inProgressTasks);
+  const filteredPaused = filterTasks(pausedTasks);
 
   const getTaskTypeBadge = (type: string) => {
     switch (type) {
@@ -135,47 +156,61 @@ export const MonitoringPage: React.FC<Props> = ({
         </div>
       )}
 
-      {/* بطاقات الإحصائيات المطلوبة: عدد الطلبات المعلقة، الطلبات الجارية، إنجاز اليوم */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        {/* بطاقة الطلبات المعلقة */}
-        <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-lg shadow-amber-950/10 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-bold text-amber-300 block mb-0.5">عدد الطلبات المعلقة</span>
-            <div className="text-2xl sm:text-3xl font-black text-amber-400 tabular-nums">
-              {pendingTasks.length} <span className="text-xs font-normal text-slate-400">طلب</span>
+      {/* بطاقات الإحصائيات المطلوبة: بانتظار القبول، الجارية، المتوقفة مؤقتاً، إنجاز اليوم */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* بطاقة الطلبات بانتظار القبول */}
+        <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-3.5 sm:p-5 shadow-lg shadow-amber-950/10 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-amber-300 block mb-0.5 truncate">بانتظار القبول</span>
+            <div className="text-xl sm:text-3xl font-black text-amber-400 tabular-nums">
+              {pendingTasks.length} <span className="text-[11px] sm:text-xs font-normal text-slate-400">طلب</span>
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">بانتظار قبول الفني للبدء</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">بانتظار قبول الفني للبدء</span>
           </div>
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         {/* بطاقة الطلبات الجارية */}
-        <div className="bg-slate-900 border border-blue-500/30 rounded-2xl p-4 sm:p-5 shadow-lg shadow-blue-950/10 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-bold text-blue-300 block mb-0.5">الطلبات الجارية</span>
-            <div className="text-2xl sm:text-3xl font-black text-blue-400 tabular-nums">
-              {inProgressTasks.length} <span className="text-xs font-normal text-slate-400">مهمة</span>
+        <div className="bg-slate-900 border border-blue-500/30 rounded-2xl p-3.5 sm:p-5 shadow-lg shadow-blue-950/10 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-blue-300 block mb-0.5 truncate">الطلبات الجارية</span>
+            <div className="text-xl sm:text-3xl font-black text-blue-400 tabular-nums">
+              {inProgressTasks.length} <span className="text-[11px] sm:text-xs font-normal text-slate-400">مهمة</span>
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">قيد التنفيذ والمباشرة بالموقع</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">قيد التنفيذ بالموقع</span>
           </div>
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
-            <Play className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <Play className="w-4 h-4 sm:w-6 sm:h-6" />
+          </div>
+        </div>
+
+        {/* بطاقة المهام المتوقفة مؤقتاً */}
+        <div className="bg-slate-900 border border-orange-500/30 rounded-2xl p-3.5 sm:p-5 shadow-lg shadow-orange-950/10 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-orange-300 block mb-0.5 truncate">متوقفة مؤقتاً</span>
+            <div className="text-xl sm:text-3xl font-black text-orange-400 tabular-nums">
+              {pausedTasks.length} <span className="text-[11px] sm:text-xs font-normal text-slate-400">مهمة</span>
+            </div>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">معلقة مؤقتاً لحين الاستئناف</span>
+          </div>
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-orange-500/15 text-orange-400 border border-orange-500/20 flex items-center justify-center shrink-0">
+            <PauseCircle className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         {/* بطاقة إنجاز اليوم */}
-        <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-lg shadow-emerald-950/10 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-bold text-emerald-300 block mb-0.5">إنجاز اليوم</span>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-400 tabular-nums">
-              {todayCompletedCount} <span className="text-xs font-normal text-slate-400">مهمة منجزة</span>
+        <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-3.5 sm:p-5 shadow-lg shadow-emerald-950/10 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold text-emerald-300 block mb-0.5 truncate">إنجاز اليوم</span>
+            <div className="text-xl sm:text-3xl font-black text-emerald-400 tabular-nums">
+              {todayCompletedCount} <span className="text-[11px] sm:text-xs font-normal text-slate-400">منجزة</span>
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">تم إتمامها وتوثيق وقتها اليوم</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">تم إتمامها اليوم</span>
           </div>
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
@@ -223,9 +258,11 @@ export const MonitoringPage: React.FC<Props> = ({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredInProgress.map((task) => {
-              const liveSecs = task.acceptedAt
-                ? Math.max(0, Math.floor((currentTime - new Date(task.acceptedAt).getTime()) / 1000))
+              const activeStartStr = task.resumedAt || task.acceptedAt;
+              const liveSegmentSecs = activeStartStr
+                ? Math.max(0, Math.floor((currentTime - new Date(activeStartStr).getTime()) / 1000))
                 : 0;
+              const liveSecs = (task.accumulatedSeconds || 0) + liveSegmentSecs;
 
               return (
                 <div
@@ -313,10 +350,161 @@ export const MonitoringPage: React.FC<Props> = ({
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[10px] text-slate-400">
                       {getRetentionCountdown(task.createdAt)}
                     </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingTaskState({ task, mode: 'edit' })}
+                        className="text-xs bg-blue-600/15 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                        title="تعديل بيانات المهمة أو تبديل الفني"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>تعديل / تبديل الفني</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`هل أنت متأكد من حذف المهمة (${task.taskNumber})؟`)) {
+                            onDeleteTask(task.id);
+                          }
+                        }}
+                        className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 p-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Section 1.5: المهام المتوقفة مؤقتاً (Paused / Suspended) */}
+      {filteredPaused.length > 0 && (
+        <div className="space-y-3 pt-4">
+          <div className="flex items-center gap-2 text-orange-400 font-bold text-sm">
+            <PauseCircle className="w-4 h-4" />
+            <span>المهام المتوقفة مؤقتاً / المعلقة ({filteredPaused.length})</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredPaused.map((task) => (
+              <div
+                key={task.id}
+                className="bg-slate-900 border border-orange-500/40 rounded-2xl p-4 sm:p-5 shadow-lg shadow-orange-950/15 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-orange-400" dir="ltr">
+                        {task.taskNumber}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${getTaskTypeBadge(task.taskType)}`}>
+                        نوع المهمة: {task.taskType}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 bg-orange-500/15 text-orange-300 border border-orange-500/30 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0">
+                      <PauseCircle className="w-3.5 h-3.5 text-orange-400" />
+                      <span>متوقفة مؤقتاً</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">المشترك:</span>
+                      <span className="text-white font-bold">{task.subscriberName}</span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs pt-1.5 border-t border-slate-800/80">
+                      <span className="text-slate-400">رقم الهاتف:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-slate-200" dir="ltr">{task.phone}</span>
+                        <a
+                          href={getTelUrl(task.phone)}
+                          className="p-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg transition-colors"
+                          title="اتصال هاتفي بالمشترك"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedWhatsAppTask(task)}
+                          className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition-colors"
+                          title="خيارات الواتساب (إرسال رسالة أو الاتصال عبر الواتساب)"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-800/80">
+                      <span className="text-slate-400">الفني المكلف:</span>
+                      <span className="text-emerald-400 font-semibold">{task.assignedToName}</span>
+                    </div>
+                  </div>
+
+                  {task.pauseReason && (
+                    <div className="mt-2.5 p-2.5 bg-orange-950/40 border border-orange-500/30 rounded-xl text-xs text-orange-200">
+                      <span className="text-orange-400 font-semibold block mb-0.5">سبب الإيقاف المؤقت:</span>
+                      {task.pauseReason}
+                    </div>
+                  )}
+
+                  {task.notes && (
+                    <div className="mt-2.5 p-2.5 bg-slate-800/50 rounded-xl text-xs text-slate-300">
+                      <span className="text-slate-400 font-semibold block mb-0.5">ملاحظات:</span>
+                      {task.notes}
+                    </div>
+                  )}
+
+                  <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                    <div>
+                      <span className="text-slate-500 block">وقت الإرسال:</span>
+                      <span className="text-slate-300 font-medium">{formatArabicDateTime(task.createdAt)}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">وقت الإيقاف:</span>
+                      <span className="text-orange-300 font-medium">{formatArabicDateTime(task.pausedAt ?? null)}</span>
+                    </div>
+                    <div className="xs:col-span-2 sm:col-span-1">
+                      <span className="text-slate-500 block">الوقت المنقضي المحفوظ:</span>
+                      <span className="text-orange-400 font-mono font-bold" dir="ltr">
+                        ⏸ {formatDigitalTimer(task.accumulatedSeconds || 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[10px] text-slate-400">
+                    {getRetentionCountdown(task.createdAt)}
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingTaskState({ task, mode: 'resend_existing' })}
+                      className="text-xs bg-emerald-600/15 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                      title="إعادة إرسال المهمة المعلقة للفني أو للكل"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                      <span>إعادة إرسال</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingTaskState({ task, mode: 'edit' })}
+                      className="text-xs bg-blue-600/15 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                      title="تعديل بيانات المهمة أو تبديل الفني"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>تعديل</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -331,11 +519,11 @@ export const MonitoringPage: React.FC<Props> = ({
                     </button>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Section 2: المهام المعلقة (Pending) */}
       <div className="space-y-3 pt-4">
@@ -452,18 +640,36 @@ export const MonitoringPage: React.FC<Props> = ({
                     <span className="text-[10px] text-slate-400">
                       {getRetentionCountdown(task.createdAt)}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {isOverdue && task.assignedToId !== 'all' && onReassignToAll && (
                         <button
                           type="button"
                           onClick={() => onReassignToAll(task.id)}
-                          className="text-xs bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+                          className="text-xs bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1 transition-all"
                           title="إعادة توجيه المهمة وإرسالها لكافة الفنيين المتاحين فوراً"
                         >
                           <Users className="w-3.5 h-3.5" />
-                          <span>📢 تحويل للكل</span>
+                          <span>تحويل للكل</span>
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => setEditingTaskState({ task, mode: 'resend_existing' })}
+                        className="text-xs bg-emerald-600/15 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                        title="إعادة إرسال المهمة المعلقة وتحديث إشعارها"
+                      >
+                        <RotateCw className="w-3.5 h-3.5" />
+                        <span>إعادة إرسال</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingTaskState({ task, mode: 'edit' })}
+                        className="text-xs bg-blue-600/15 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                        title="تعديل بيانات المهمة أو تبديل الفني"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>تعديل</span>
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -474,7 +680,7 @@ export const MonitoringPage: React.FC<Props> = ({
                         className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 p-1"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        <span>حذف المهمة</span>
+                        <span>حذف</span>
                       </button>
                     </div>
                   </div>
@@ -490,7 +696,21 @@ export const MonitoringPage: React.FC<Props> = ({
         <WhatsAppPreviewModal
           task={selectedWhatsAppTask}
           technicianName={selectedWhatsAppTask.assignedToName}
+          customTemplate={whatsappTemplate}
+          onEditGlobalTemplate={onOpenWhatsAppTemplate}
           onClose={() => setSelectedWhatsAppTask(null)}
+        />
+      )}
+
+      {/* Task Edit / Resend Modal */}
+      {editingTaskState && (
+        <TaskEditModal
+          task={editingTaskState.task}
+          mode={editingTaskState.mode}
+          technicians={technicians}
+          onSaveEdit={onUpdateTask}
+          onResendExisting={onResendExistingTask}
+          onClose={() => setEditingTaskState(null)}
         />
       )}
     </div>

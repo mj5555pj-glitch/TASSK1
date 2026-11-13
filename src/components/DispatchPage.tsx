@@ -11,7 +11,8 @@ import {
   User as UserIcon, 
   Phone, 
   FileText, 
-  Calendar 
+  Calendar,
+  MessageSquare
 } from 'lucide-react';
 
 interface Props {
@@ -25,11 +26,13 @@ interface Props {
     assignedToId: string;
     assignedToName: string;
   }) => Promise<void>;
+  onOpenWhatsAppTemplate?: () => void;
 }
 
 export const DispatchPage: React.FC<Props> = ({
   technicians,
   onAddTask,
+  onOpenWhatsAppTemplate,
 }) => {
   const [selectedTaskType, setSelectedTaskType] = useState<AllowedTaskType>('صيانة');
   const [subscriberName, setSubscriberName] = useState('');
@@ -118,9 +121,22 @@ export const DispatchPage: React.FC<Props> = ({
           </p>
         </div>
 
-        <div className="text-xs text-slate-400 bg-slate-950/80 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-slate-800 flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
-          <span>مدة الاحتفاظ بالسجل: <strong>أسبوع كامل (7 أيام)</strong></span>
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenWhatsAppTemplate && (
+            <button
+              type="button"
+              onClick={onOpenWhatsAppTemplate}
+              className="text-xs font-bold text-emerald-300 hover:text-white bg-emerald-600/15 hover:bg-emerald-600 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-emerald-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="تعديل نص رسالة الواتساب الموجهة للمشترك وإضافة تفاصيل دائمة"
+            >
+              <MessageSquare className="w-4 h-4 shrink-0" />
+              <span>تعديل رسالة الواتساب للمشترك</span>
+            </button>
+          )}
+          <div className="text-xs text-slate-400 bg-slate-950/80 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-slate-800 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
+            <span>مدة الاحتفاظ بالسجل: <strong>أسبوع كامل (7 أيام)</strong></span>
+          </div>
         </div>
       </div>
 

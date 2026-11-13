@@ -8,14 +8,21 @@ import {
   deleteUserFromFirebase,
   addTaskToFirebase, 
   acceptTaskInFirebase, 
+  pauseTaskInFirebase,
+  resumeTaskInFirebase,
   completeTaskInFirebase, 
+  updateTaskInFirebase,
+  resendExistingTaskInFirebase,
   deleteTaskFromFirebase, 
   purgeExpiredTasksFromFirebase,
   reassignTaskToAllInFirebase,
-  purgeAllDemoTasks 
+  purgeAllDemoTasks,
+  subscribeToWhatsAppTemplate,
+  saveWhatsAppTemplateToFirebase
 } from './firebase';
 import { playNewTaskAlertSound, playSuccessSound, playOverdueAlertSound } from './utils/audio';
 import { sendDevicePushNotification, sendManagerOverdueNotification } from './utils/notifications';
+import { DEFAULT_WHATSAPP_TEMPLATE } from './utils/whatsapp';
 import { isTaskUnacceptedOverdue, getElapsedMinutes } from './utils/time';
 import { LoginScreen } from './components/LoginScreen';
 import { Navbar } from './components/Navbar';
@@ -28,6 +35,8 @@ import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
 import { TechniciansManagementModal } from './components/TechniciansManagementModal';
 import { ManagerOverdueModal } from './components/ManagerOverdueModal';
 import { ManagerAccountModal } from './components/ManagerAccountModal';
+import { WhatsAppTemplateModal } from './components/WhatsAppTemplateModal';
+import { TaskEditPayload } from './components/TaskEditModal';
 
 export default function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -39,9 +48,12 @@ export default function App() {
   const [whatsAppModalTask, setWhatsAppModalTask] = useState<MaintenanceTask | null>(null);
   const [showTechManagementModal, setShowTechManagementModal] = useState(false);
   const [showManagerAccountModal, setShowManagerAccountModal] = useState(false);
+  const [showWhatsAppTemplateModal, setShowWhatsAppTemplateModal] = useState(false);
+  const [whatsappTemplate, setWhatsappTemplate] = useState<string>(DEFAULT_WHATSAPP_TEMPLATE);
   const [dismissedOverdueTaskIds, setDismissedOverdueTaskIds] = useState<Set<string>>(new Set());
 
   const knownTaskIdsRef = useRef<Set<string>>(new Set());
+  const knownBroadcastsRef = useRef<Map<string, string>>(new Map());
   const alertedOverdueTaskIdsRef = useRef<Set<string>>(new Set());
   const isInitialSnapshotRef = useRef<boolean>(true);
   const currentUserRef = useRef<User | null>(null);
@@ -92,16 +104,28 @@ export default function App() {
       const activeUser = currentUserRef.current;
 
       if (isInitialSnapshotRef.current) {
-        incomingTasks.forEach((t) => knownTaskIdsRef.current.add(t.id));
+        incomingTasks.forEach((t) => {
+          knownTaskIdsRef.current.add(t.id);
+          if (t.lastBroadcastAt) {
+            knownBroadcastsRef.current.set(t.id, t.lastBroadcastAt);
+          }
+        });
         isInitialSnapshotRef.current = false;
       } else {
-        const newDispatchedTasks = incomingTasks.filter(
-          (t) => !knownTaskIdsRef.current.has(t.id) && (t.status === 'pending' || !t.acceptedAt)
-        );
+        const newDispatchedTasks = incomingTasks.filter((t) => {
+          const isNewTask = !knownTaskIdsRef.current.has(t.id);
+          const prevBroadcast = knownBroadcastsRef.current.get(t.id);
+          const isResentBroadcast =
+            !!t.lastBroadcastAt && t.lastBroadcastAt !== prevBroadcast;
+          return (isNewTask || isResentBroadcast) && (t.status === 'pending' || !t.acceptedAt);
+        });
 
         if (newDispatchedTasks.length > 0) {
           newDispatchedTasks.forEach((task) => {
             knownTaskIdsRef.current.add(task.id);
+            if (task.lastBroadcastAt) {
+              knownBroadcastsRef.current.set(task.id, task.lastBroadcastAt);
+            }
 
             // If user is a technician and task is assigned to them (or open to all)
             if (activeUser && activeUser.role === 'technician') {
@@ -124,12 +148,26 @@ export default function App() {
             }
           });
         }
+
+        // Sync known task IDs and broadcast timestamps
+        incomingTasks.forEach((t) => {
+          knownTaskIdsRef.current.add(t.id);
+          if (t.lastBroadcastAt) {
+            knownBroadcastsRef.current.set(t.id, t.lastBroadcastAt);
+          }
+        });
       }
+    });
+
+    // Subscribe to global customizable WhatsApp message template
+    const unsubWhatsAppTemplate = subscribeToWhatsAppTemplate((tmpl) => {
+      setWhatsappTemplate(tmpl);
     });
 
     return () => {
       unsubUsers();
       unsubTasks();
+      unsubWhatsAppTemplate();
     };
   }, []);
 
@@ -208,6 +246,18 @@ export default function App() {
     playSuccessSound();
   };
 
+  // Technician pauses / holds task temporarily
+  const handlePauseTask = async (task: MaintenanceTask, pauseReason?: string) => {
+    await pauseTaskInFirebase(task, pauseReason);
+    playSuccessSound();
+  };
+
+  // Technician resumes paused task
+  const handleResumeTask = async (taskId: string) => {
+    await resumeTaskInFirebase(taskId);
+    playSuccessSound();
+  };
+
   // Technician completes task
   const handleCompleteTask = async (task: MaintenanceTask, notes?: string) => {
     await completeTaskInFirebase(task, notes);
@@ -243,6 +293,45 @@ export default function App() {
     playSuccessSound();
   };
 
+  // Manager updates global WhatsApp template
+  const handleSaveWhatsAppTemplate = async (newTemplate: string) => {
+    await saveWhatsAppTemplateToFirebase({
+      template: newTemplate,
+      updatedAt: new Date().toISOString(),
+      updatedBy: currentUser?.fullName || 'المدير',
+    });
+    setWhatsappTemplate(newTemplate);
+    playSuccessSound();
+  };
+
+  // Manager edits task info or switches assigned technician
+  const handleUpdateTask = async (
+    taskId: string,
+    updates: Partial<MaintenanceTask>
+  ) => {
+    await updateTaskInFirebase(taskId, updates);
+    playSuccessSound();
+  };
+
+  // Manager resends an existing pending or paused task
+  const handleResendExistingTask = async (
+    task: MaintenanceTask,
+    overrides: TaskEditPayload
+  ) => {
+    await resendExistingTaskInFirebase(task, overrides);
+    alertedOverdueTaskIdsRef.current.delete(task.id);
+    playSuccessSound();
+  };
+
+  // Manager resends a completed task as a brand new pending task
+  const handleResendCompletedTask = async (data: TaskEditPayload) => {
+    await addTaskToFirebase({
+      ...data,
+      createdBy: currentUser?.fullName || 'المدير',
+    });
+    playSuccessSound();
+  };
+
   // Reassign unaccepted / overdue task to ALL technicians immediately
   const handleReassignToAll = async (taskId: string) => {
     await reassignTaskToAllInFirebase(taskId);
@@ -265,14 +354,16 @@ export default function App() {
   }
 
   const technicians = users.filter((u) => u.role === 'technician');
-  const pendingCount = tasks.filter((t) => t.status === 'pending' || (!t.acceptedAt && !t.completedAt)).length;
-  const inProgressCount = tasks.filter((t) => t.status === 'in_progress' || (t.acceptedAt && !t.completedAt)).length;
+  const pendingCount = tasks.filter((t) => t.status === 'pending' || (!t.acceptedAt && !t.completedAt && t.status !== 'paused')).length;
+  const inProgressCount = tasks.filter((t) => t.status === 'in_progress' || (t.acceptedAt && !t.completedAt && t.status !== 'paused')).length;
 
   // Active unaccepted tasks overdue by >= 15 minutes that haven't been dismissed by the manager
   const managerOverdueTasks = currentUser.role === 'manager'
     ? tasks.filter(
         (t) =>
-          (t.status === 'pending' || (!t.acceptedAt && !t.completedAt)) &&
+          t.status === 'pending' &&
+          !t.acceptedAt &&
+          !t.completedAt &&
           isTaskUnacceptedOverdue(t.createdAt, 15) &&
           !dismissedOverdueTaskIds.has(t.id)
       )
@@ -290,6 +381,7 @@ export default function App() {
         inProgressCount={inProgressCount}
         onOpenTechManagement={() => setShowTechManagementModal(true)}
         onOpenManagerAccount={() => setShowManagerAccountModal(true)}
+        onOpenWhatsAppTemplate={() => setShowWhatsAppTemplateModal(true)}
       />
 
       {/* Main Pages View */}
@@ -298,7 +390,10 @@ export default function App() {
           <TechnicianView
             technician={currentUser}
             tasks={tasks}
+            whatsappTemplate={whatsappTemplate}
             onAcceptTask={handleAcceptTask}
+            onPauseTask={handlePauseTask}
+            onResumeTask={handleResumeTask}
             onCompleteTask={handleCompleteTask}
           />
         ) : (
@@ -308,13 +403,19 @@ export default function App() {
                 manager={currentUser}
                 technicians={technicians}
                 onAddTask={handleAddTask}
+                onOpenWhatsAppTemplate={() => setShowWhatsAppTemplateModal(true)}
               />
             )}
 
             {currentPage === 'monitoring' && (
               <MonitoringPage
                 tasks={tasks}
+                technicians={technicians}
+                whatsappTemplate={whatsappTemplate}
+                onOpenWhatsAppTemplate={() => setShowWhatsAppTemplateModal(true)}
                 onDeleteTask={handleDeleteTask}
+                onUpdateTask={handleUpdateTask}
+                onResendExistingTask={handleResendExistingTask}
                 onCompleteTask={handleCompleteTask}
                 onReassignToAll={handleReassignToAll}
               />
@@ -323,7 +424,12 @@ export default function App() {
             {currentPage === 'archive' && (
               <ArchivePage
                 tasks={tasks}
+                technicians={technicians}
+                whatsappTemplate={whatsappTemplate}
+                onOpenWhatsAppTemplate={() => setShowWhatsAppTemplateModal(true)}
                 onDeleteTask={handleDeleteTask}
+                onUpdateTask={handleUpdateTask}
+                onResendCompletedTask={handleResendCompletedTask}
                 onPurgeExpired={handlePurgeExpired}
               />
             )}
@@ -335,16 +441,11 @@ export default function App() {
       {activePushToastTask && currentUser && currentUser.role === 'technician' && (
         <PushNotificationToast
           task={activePushToastTask}
-          technicianName={currentUser.fullName}
           onAccept={(taskId) => {
             handleAcceptTask(taskId);
             setActivePushToastTask(null);
           }}
           onDismiss={() => setActivePushToastTask(null)}
-          onOpenWhatsApp={(task) => {
-            setWhatsAppModalTask(task);
-            setActivePushToastTask(null);
-          }}
         />
       )}
 
@@ -361,11 +462,17 @@ export default function App() {
         />
       )}
 
-      {/* WhatsApp Preview Modal from Push Toast */}
+      {/* WhatsApp Preview Modal from Push Toast or Overdue Alert */}
       {whatsAppModalTask && currentUser && (
         <WhatsAppPreviewModal
           task={whatsAppModalTask}
           technicianName={currentUser.fullName}
+          customTemplate={whatsappTemplate}
+          onEditGlobalTemplate={
+            currentUser.role === 'manager'
+              ? () => setShowWhatsAppTemplateModal(true)
+              : undefined
+          }
           onClose={() => setWhatsAppModalTask(null)}
         />
       )}
@@ -377,6 +484,26 @@ export default function App() {
           onSaveTechnician={handleSaveTechnician}
           onDeleteTechnician={handleDeleteTechnician}
           onClose={() => setShowTechManagementModal(false)}
+        />
+      )}
+
+      {/* Manager Self Account Management Modal */}
+      {showManagerAccountModal && currentUser.role === 'manager' && (
+        <ManagerAccountModal
+          manager={currentUser}
+          allUsers={users}
+          onSave={handleSaveManager}
+          onClose={() => setShowManagerAccountModal(false)}
+        />
+      )}
+
+      {/* Manager WhatsApp Message Template Editor Modal */}
+      {showWhatsAppTemplateModal && currentUser.role === 'manager' && (
+        <WhatsAppTemplateModal
+          currentTemplate={whatsappTemplate}
+          managerName={currentUser.fullName}
+          onSave={handleSaveWhatsAppTemplate}
+          onClose={() => setShowWhatsAppTemplateModal(false)}
         />
       )}
 

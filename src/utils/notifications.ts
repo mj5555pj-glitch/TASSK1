@@ -62,9 +62,9 @@ export function sendDevicePushNotification(task: MaintenanceTask, onClick?: () =
   // 3. Browser system push notification
   if (isNotificationSupported() && Notification.permission === 'granted') {
     try {
-      const title = `🚨 طلب صيانة جديد: ${task.taskType}`;
+      const title = `🚨 طلب صيانة جديد (${task.taskNumber}): ${task.taskType}`;
       const options: NotificationOptions = {
-        body: `المشترك: ${task.subscriberName} (${task.phone})\nالفني المكلف: ${task.assignedToName}\n${task.notes ? 'ملاحظة: ' + task.notes : ''}`,
+        body: `الموجه إليه: ${task.assignedToName}\n🔒 تفاصيل المشترك ومعلومات الاتصال مخفية وتظهر فور قبول المهمة.`,
         icon: 'https://cdn-icons-png.flaticon.com/512/3067/3067451.png',
         tag: `task-${task.id}`,
         requireInteraction: true,

@@ -19,14 +19,20 @@
         "createdBy": { "type": "string" },
         "createdAt": { "type": "string" },
         "acceptedAt": { "type": "string" },
+        "pausedAt": { "type": "string" },
+        "resumedAt": { "type": "string" },
+        "pauseReason": { "type": "string", "maxLength": 500 },
+        "accumulatedSeconds": { "type": "number" },
         "completedAt": { "type": "string" },
         "durationSeconds": { "type": "number" },
         "durationFormatted": { "type": "string" },
         "completionNotes": { "type": "string", "maxLength": 1000 },
         "expiresAt": { "type": "string" },
+        "lastBroadcastAt": { "type": "string" },
+        "resentCount": { "type": "number" },
         "status": {
           "type": "string",
-          "enum": ["pending", "in_progress", "completed"]
+          "enum": ["pending", "in_progress", "paused", "completed"]
         }
       },
       "required": ["taskNumber", "taskType", "subscriberName", "phone", "createdAt", "status"]
@@ -46,6 +52,17 @@
         "status": { "type": "string" }
       },
       "required": ["id", "username", "password", "fullName", "role"]
+    },
+    "Settings": {
+      "title": "WhatsAppTemplateSettings",
+      "description": "Global system settings such as the customizable subscriber WhatsApp message template",
+      "type": "object",
+      "properties": {
+        "template": { "type": "string", "maxLength": 4000 },
+        "updatedAt": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["template"]
     }
   },
   "firestore": {
@@ -56,6 +73,10 @@
     "/users/{userId}": {
       "schema": "User",
       "description": "Collection of users and technician accounts"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Collection of global app settings such as the WhatsApp message template"
     }
   }
 }

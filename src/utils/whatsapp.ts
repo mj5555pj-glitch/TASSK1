@@ -66,22 +66,60 @@ export function normalizePhoneForWhatsApp(phone: string, preferredDialCode: stri
   return `${cleanDial}${digits}`;
 }
 
+export const DEFAULT_WHATSAPP_TEMPLATE =
+  `السلام عليكم ورحمة الله أخي {اسم_المشترك}،\n` +
+  `معك الفني ({اسم_الفني}) المرسل من مكتب المستقل الرقمي، التابع للشركة المجهزة سوبرسيل لخدمات الإنترنت.\n\n` +
+  `بخصوص طلب الصيانة المسجل لديكم: [{نوع_المهمة}].\n` +
+  `{الملاحظات}\n` +
+  `أنا متوجه إليكم حالياً، أرجو تأكيد تواجدكم بالعنوان أو إرسال الموقع الدقيق عبر الواتساب لتسريع الوصول وإنجاز الصيانة. شكراً لكم!`;
+
+export const WHATSAPP_TEMPLATE_PLACEHOLDERS = [
+  { token: '{اسم_المشترك}', label: 'اسم المشترك' },
+  { token: '{اسم_الفني}', label: 'اسم الفني' },
+  { token: '{نوع_المهمة}', label: 'نوع المهمة' },
+  { token: '{رقم_المهمة}', label: 'رقم المهمة' },
+  { token: '{الملاحظات}', label: 'الملاحظات' },
+];
+
 /**
- * Builds the pre-filled WhatsApp message containing technician name, subscriber name, and task details
+ * Builds the pre-filled WhatsApp message using either the manager-customized template
+ * or the default template, replacing dynamic placeholders cleanly.
  */
 export function buildWhatsAppMessage(
   subscriberName: string,
   technicianName: string,
   taskType: string,
-  notes?: string
+  notes?: string,
+  customTemplate?: string,
+  taskNumber?: string
 ): string {
-  let msg = `السلام عليكم ورحمة الله أخي ${subscriberName.trim()}،\n`;
-  msg += `معك الفني (${technicianName.trim()}) من فريق الدعم الفني وصيانة شبكات الإنترنت.\n\n`;
-  msg += `بخصوص طلب الصيانة المسجل لديكم: [${taskType.trim()}].\n`;
-  if (notes && notes.trim().length > 0) {
-    msg += `ملاحظات البلاغ: ${notes.trim()}\n`;
-  }
-  msg += `أنا متوجه إليكم حالياً، أرجو تأكيد تواجدكم بالعنوان أو إرسال الموقع الدقيق عبر الواتساب لتسريع الوصول وإنجاز الصيانة. شكراً لكم!`;
+  const rawTemplate =
+    customTemplate && customTemplate.trim().length > 0
+      ? customTemplate
+      : DEFAULT_WHATSAPP_TEMPLATE;
+
+  const trimmedNotes = notes ? notes.trim() : '';
+  const notesReplacement = trimmedNotes.length > 0 ? `ملاحظات البلاغ: ${trimmedNotes}` : '';
+
+  let msg = rawTemplate
+    .replace(/\{اسم_المشترك\}/g, subscriberName.trim())
+    .replace(/\{اسم_الفني\}/g, technicianName.trim())
+    .replace(/\{نوع_المهمة\}/g, taskType.trim())
+    .replace(/\{رقم_المهمة\}/g, (taskNumber || '').trim())
+    .replace(/\{الملاحظات\}/g, notesReplacement);
+
+  // Clean up any leftover blank lines if {الملاحظات} was empty
+  msg = msg
+    .split('\n')
+    .reduce<string[]>((acc, line) => {
+      const isBlank = line.trim() === '';
+      const prevIsBlank = acc.length > 0 && acc[acc.length - 1].trim() === '';
+      if (isBlank && prevIsBlank) return acc;
+      acc.push(line);
+      return acc;
+    }, [])
+    .join('\n')
+    .trim();
 
   return msg;
 }
@@ -95,10 +133,12 @@ export function getWhatsAppUrl(
   technicianName: string,
   taskType: string,
   notes?: string,
-  dialCode: string = '964'
+  dialCode: string = '964',
+  customTemplate?: string,
+  taskNumber?: string
 ): string {
   const cleanNumber = normalizePhoneForWhatsApp(phone, dialCode);
-  const text = buildWhatsAppMessage(subscriberName, technicianName, taskType, notes);
+  const text = buildWhatsAppMessage(subscriberName, technicianName, taskType, notes, customTemplate, taskNumber);
   const encodedText = encodeURIComponent(text);
 
   if (cleanNumber.length > 0) {

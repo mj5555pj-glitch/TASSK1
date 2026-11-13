@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { MaintenanceTask } from '../types';
+import { MaintenanceTask, User } from '../types';
 import { formatArabicDateTime, getRetentionCountdown } from '../utils/time';
 import { getTelUrl } from '../utils/whatsapp';
 import { WhatsAppPreviewModal } from './WhatsAppPreviewModal';
+import { TaskEditModal, TaskModalMode, TaskEditPayload } from './TaskEditModal';
 import { 
   CheckCircle2, 
   Calendar, 
@@ -11,22 +12,35 @@ import {
   Search, 
   Phone, 
   MessageSquare, 
-  Clock 
+  Clock,
+  Edit3,
+  RotateCw
 } from 'lucide-react';
 
 interface Props {
   tasks: MaintenanceTask[];
+  technicians: User[];
+  whatsappTemplate?: string;
+  onOpenWhatsAppTemplate?: () => void;
   onDeleteTask: (taskId: string) => Promise<void>;
+  onUpdateTask: (taskId: string, updates: Partial<MaintenanceTask>) => Promise<void>;
+  onResendCompletedTask: (data: TaskEditPayload) => Promise<void>;
   onPurgeExpired: () => Promise<number>;
 }
 
 export const ArchivePage: React.FC<Props> = ({
   tasks,
+  technicians,
+  whatsappTemplate,
+  onOpenWhatsAppTemplate,
   onDeleteTask,
+  onUpdateTask,
+  onResendCompletedTask,
   onPurgeExpired,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedWhatsAppTask, setSelectedWhatsAppTask] = useState<MaintenanceTask | null>(null);
+  const [editingTaskState, setEditingTaskState] = useState<{ task: MaintenanceTask; mode: TaskModalMode } | null>(null);
   const [isPurging, setIsPurging] = useState(false);
 
   const completedTasks = tasks.filter((t) => t.status === 'completed' || !!t.completedAt);
@@ -254,10 +268,32 @@ export const ArchivePage: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Retention Countdown */}
-              <div className="mt-2.5 text-[10px] text-slate-500 flex items-center justify-between">
-                <span>صلاحية السجل: {getRetentionCountdown(task.createdAt)}</span>
-                <span>محفوظ في فايبر بيس</span>
+              {/* Retention Countdown & Actions */}
+              <div className="mt-3 pt-2.5 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2">
+                <div className="text-[10px] text-slate-500 flex items-center gap-2">
+                  <span>صلاحية السجل: {getRetentionCountdown(task.createdAt)}</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setEditingTaskState({ task, mode: 'resend_completed' })}
+                    className="text-xs bg-emerald-600/15 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                    title="إعادة إرسال هذه المهمة المنجزة كمهمة جديدة"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>إعادة إرسال المهمة</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingTaskState({ task, mode: 'edit' })}
+                    className="text-xs bg-blue-600/15 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                    title="تعديل معلومات المهمة أو تبديل الفني"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>تعديل</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -269,7 +305,21 @@ export const ArchivePage: React.FC<Props> = ({
         <WhatsAppPreviewModal
           task={selectedWhatsAppTask}
           technicianName={selectedWhatsAppTask.assignedToName}
+          customTemplate={whatsappTemplate}
+          onEditGlobalTemplate={onOpenWhatsAppTemplate}
           onClose={() => setSelectedWhatsAppTask(null)}
+        />
+      )}
+
+      {/* Task Edit / Resend Modal */}
+      {editingTaskState && (
+        <TaskEditModal
+          task={editingTaskState.task}
+          mode={editingTaskState.mode}
+          technicians={technicians}
+          onSaveEdit={onUpdateTask}
+          onResendAsNew={onResendCompletedTask}
+          onClose={() => setEditingTaskState(null)}
         />
       )}
     </div>

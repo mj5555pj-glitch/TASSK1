@@ -9,7 +9,8 @@ import {
   Activity, 
   Archive, 
   Clock, 
-  Database 
+  Database,
+  MessageSquare
 } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
@@ -22,6 +23,7 @@ interface Props {
   inProgressCount?: number;
   onOpenTechManagement?: () => void;
   onOpenManagerAccount?: () => void;
+  onOpenWhatsAppTemplate?: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -33,6 +35,7 @@ export const Navbar: React.FC<Props> = ({
   inProgressCount = 0,
   onOpenTechManagement,
   onOpenManagerAccount,
+  onOpenWhatsAppTemplate,
 }) => {
   const isManager = currentUser.role === 'manager';
 
@@ -115,7 +118,19 @@ export const Navbar: React.FC<Props> = ({
                   title="تعديل حسابات الفنيين وإضافة أو إزالة فني وتغيير كلمات المرور"
                 >
                   <Wrench className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>إدارة حسابات الفنيين</span>
+                  <span>الفنيين</span>
+                </button>
+              )}
+
+              {onOpenWhatsAppTemplate && (
+                <button
+                  type="button"
+                  onClick={onOpenWhatsAppTemplate}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors whitespace-nowrap"
+                  title="تعديل نص رسالة الواتساب المرسلة للمشترك"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-teal-400" />
+                  <span>رسالة الواتساب</span>
                 </button>
               )}
             </nav>
@@ -156,12 +171,12 @@ export const Navbar: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Mobile Sub-Navigation Bar for Manager - 4 equal grid columns, zero overflow */}
+        {/* Mobile Sub-Navigation Bar for Manager - 5 equal grid columns, zero overflow */}
         {isManager && (
-          <div className="grid grid-cols-4 gap-1 md:hidden border-t border-slate-800/80 py-1.5 text-[11px] w-full">
+          <div className="grid grid-cols-5 gap-1 md:hidden border-t border-slate-800/80 py-1.5 text-[10px] w-full">
             <button
               onClick={() => onPageChange('dispatch')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+              className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-all ${
                 currentPage === 'dispatch' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -170,21 +185,21 @@ export const Navbar: React.FC<Props> = ({
             </button>
             <button
               onClick={() => onPageChange('monitoring')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all relative ${
+              className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-all relative ${
                 currentPage === 'monitoring' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Activity className="w-3.5 h-3.5 mb-0.5" />
               <span className="truncate w-full text-center">المتابعة</span>
               {(pendingCount > 0 || inProgressCount > 0) && (
-                <span className="absolute top-0.5 right-1 px-1 rounded-full text-[9px] bg-amber-500 text-slate-950 font-black">
+                <span className="absolute top-0.5 right-0.5 px-1 rounded-full text-[9px] bg-amber-500 text-slate-950 font-black">
                   {pendingCount + inProgressCount}
                 </span>
               )}
             </button>
             <button
               onClick={() => onPageChange('archive')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg transition-all ${
+              className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-all ${
                 currentPage === 'archive' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -195,10 +210,20 @@ export const Navbar: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onOpenTechManagement}
-                className="flex flex-col items-center justify-center py-1 px-1 rounded-lg text-emerald-400 font-bold hover:bg-slate-800"
+                className="flex flex-col items-center justify-center py-1 px-0.5 rounded-lg text-emerald-400 font-bold hover:bg-slate-800"
               >
                 <Wrench className="w-3.5 h-3.5 mb-0.5" />
                 <span className="truncate w-full text-center">الفنيين</span>
+              </button>
+            )}
+            {onOpenWhatsAppTemplate && (
+              <button
+                type="button"
+                onClick={onOpenWhatsAppTemplate}
+                className="flex flex-col items-center justify-center py-1 px-0.5 rounded-lg text-teal-400 font-bold hover:bg-slate-800"
+              >
+                <MessageSquare className="w-3.5 h-3.5 mb-0.5" />
+                <span className="truncate w-full text-center">الواتساب</span>
               </button>
             )}
           </div>
