@@ -22,7 +22,7 @@ export const TASK_TYPES: { id: AllowedTaskType; label: string; description: stri
   { id: 'مشاكل اخرى', label: 'مشاكل اخرى', description: 'بلاغات واستفسارات فنية أخرى لم تذكر أعلاه', icon: 'help-circle' },
 ];
 
-export type TaskStatus = 'pending' | 'in_progress' | 'paused' | 'completed';
+export type TaskStatus = 'pending' | 'in_progress' | 'paused' | 'suspended' | 'completed';
 
 export interface MaintenanceTask {
   id: string;
@@ -37,9 +37,11 @@ export interface MaintenanceTask {
   createdAt: string; // ISO string
   acceptedAt: string | null; // ISO string
   pausedAt?: string | null; // ISO string when paused
+  suspendedAt?: string | null; // ISO string when put on hold
   resumedAt?: string | null; // ISO string when last resumed
-  pauseReason?: string; // Reason for pausing/holding the task
-  accumulatedSeconds?: number; // Active working seconds accumulated prior to pause
+  pauseReason?: string; // Reason for pausing the task
+  suspendReason?: string; // Reason for suspending/holding the task
+  accumulatedSeconds?: number; // Active working seconds accumulated prior to pause/hold
   completedAt: string | null; // ISO string
   durationSeconds: number | null; // Calculated duration in seconds
   durationFormatted: string | null; // e.g. "35 دقيقة"

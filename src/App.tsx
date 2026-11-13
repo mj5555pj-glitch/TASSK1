@@ -9,6 +9,7 @@ import {
   addTaskToFirebase, 
   acceptTaskInFirebase, 
   pauseTaskInFirebase,
+  suspendTaskInFirebase,
   resumeTaskInFirebase,
   completeTaskInFirebase, 
   updateTaskInFirebase,
@@ -246,13 +247,19 @@ export default function App() {
     playSuccessSound();
   };
 
-  // Technician pauses / holds task temporarily
+  // Technician pauses task temporarily
   const handlePauseTask = async (task: MaintenanceTask, pauseReason?: string) => {
     await pauseTaskInFirebase(task, pauseReason);
     playSuccessSound();
   };
 
-  // Technician resumes paused task
+  // Technician suspends (holds) task -> moves to "المهام المعلقة"
+  const handleSuspendTask = async (task: MaintenanceTask, suspendReason?: string) => {
+    await suspendTaskInFirebase(task, suspendReason);
+    playSuccessSound();
+  };
+
+  // Technician resumes paused or suspended task
   const handleResumeTask = async (taskId: string) => {
     await resumeTaskInFirebase(taskId);
     playSuccessSound();
@@ -354,8 +361,12 @@ export default function App() {
   }
 
   const technicians = users.filter((u) => u.role === 'technician');
-  const pendingCount = tasks.filter((t) => t.status === 'pending' || (!t.acceptedAt && !t.completedAt && t.status !== 'paused')).length;
-  const inProgressCount = tasks.filter((t) => t.status === 'in_progress' || (t.acceptedAt && !t.completedAt && t.status !== 'paused')).length;
+  const pendingCount = tasks.filter(
+    (t) => t.status === 'pending' || (!t.acceptedAt && !t.completedAt && t.status !== 'paused' && t.status !== 'suspended')
+  ).length;
+  const inProgressCount = tasks.filter(
+    (t) => t.status === 'in_progress' || (!!t.acceptedAt && !t.completedAt && t.status !== 'paused' && t.status !== 'suspended')
+  ).length;
 
   // Active unaccepted tasks overdue by >= 15 minutes that haven't been dismissed by the manager
   const managerOverdueTasks = currentUser.role === 'manager'
@@ -393,6 +404,7 @@ export default function App() {
             whatsappTemplate={whatsappTemplate}
             onAcceptTask={handleAcceptTask}
             onPauseTask={handlePauseTask}
+            onSuspendTask={handleSuspendTask}
             onResumeTask={handleResumeTask}
             onCompleteTask={handleCompleteTask}
           />

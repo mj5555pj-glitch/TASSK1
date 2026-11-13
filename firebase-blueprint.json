@@ -20,8 +20,10 @@
         "createdAt": { "type": "string" },
         "acceptedAt": { "type": "string" },
         "pausedAt": { "type": "string" },
+        "suspendedAt": { "type": "string" },
         "resumedAt": { "type": "string" },
         "pauseReason": { "type": "string", "maxLength": 500 },
+        "suspendReason": { "type": "string", "maxLength": 500 },
         "accumulatedSeconds": { "type": "number" },
         "completedAt": { "type": "string" },
         "durationSeconds": { "type": "number" },
@@ -32,7 +34,7 @@
         "resentCount": { "type": "number" },
         "status": {
           "type": "string",
-          "enum": ["pending", "in_progress", "paused", "completed"]
+          "enum": ["pending", "in_progress", "paused", "suspended", "completed"]
         }
       },
       "required": ["taskNumber", "taskType", "subscriberName", "phone", "createdAt", "status"]

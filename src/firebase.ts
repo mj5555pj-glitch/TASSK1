@@ -334,7 +334,7 @@ export async function reassignTaskToAllInFirebase(taskId: string): Promise<void>
 }
 
 /**
- * Pause / suspend a task temporarily in Firebase, saving accumulated working seconds
+ * Pause a task temporarily in Firebase, saving accumulated working seconds
  */
 export async function pauseTaskInFirebase(
   task: MaintenanceTask,
@@ -359,7 +359,32 @@ export async function pauseTaskInFirebase(
 }
 
 /**
- * Resume a paused task in Firebase
+ * Suspend (put on hold) an accepted task and move it to the "المهام المعلقة" queue
+ */
+export async function suspendTaskInFirebase(
+  task: MaintenanceTask,
+  suspendReason?: string
+): Promise<void> {
+  const nowIso = new Date().toISOString();
+  const activeStartIso = task.resumedAt || task.acceptedAt || task.createdAt;
+  const currentSegmentSecs = calculateDurationSeconds(activeStartIso, nowIso);
+  const totalAccumulated = (task.accumulatedSeconds || 0) + currentSegmentSecs;
+
+  try {
+    const taskDocRef = doc(db, TASKS_COLLECTION, task.id);
+    await updateDoc(taskDocRef, {
+      status: 'suspended',
+      suspendedAt: nowIso,
+      suspendReason: suspendReason?.trim() || '',
+      accumulatedSeconds: totalAccumulated,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${task.id}`);
+  }
+}
+
+/**
+ * Resume a paused or suspended task in Firebase
  */
 export async function resumeTaskInFirebase(taskId: string): Promise<void> {
   const nowIso = new Date().toISOString();
@@ -369,6 +394,7 @@ export async function resumeTaskInFirebase(taskId: string): Promise<void> {
       status: 'in_progress',
       resumedAt: nowIso,
       pausedAt: null,
+      suspendedAt: null,
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${TASKS_COLLECTION}/${taskId}`);
@@ -376,7 +402,7 @@ export async function resumeTaskInFirebase(taskId: string): Promise<void> {
 }
 
 /**
- * Complete task in Firebase (Records completed time, calculated duration across pauses, and status to completed)
+ * Complete task in Firebase (Records completed time, calculated duration across pauses/holds, and status to completed)
  */
 export async function completeTaskInFirebase(
   task: MaintenanceTask,
@@ -386,7 +412,7 @@ export async function completeTaskInFirebase(
   const completedAtIso = now.toISOString();
 
   let durationSecs = task.accumulatedSeconds || 0;
-  if (task.status !== 'paused') {
+  if (task.status !== 'paused' && task.status !== 'suspended') {
     const startIso = task.resumedAt || task.acceptedAt || task.createdAt;
     durationSecs += calculateDurationSeconds(startIso, completedAtIso);
   }
@@ -423,7 +449,7 @@ export async function updateTaskInFirebase(
 }
 
 /**
- * Resend an existing pending or paused task to the selected technician(s) as a fresh pending dispatch
+ * Resend an existing pending, paused, or suspended task to the selected technician(s) as a fresh pending dispatch
  */
 export async function resendExistingTaskInFirebase(
   task: MaintenanceTask,
@@ -453,8 +479,10 @@ export async function resendExistingTaskInFirebase(
       lastBroadcastAt: nowIso,
       acceptedAt: null,
       pausedAt: null,
+      suspendedAt: null,
       resumedAt: null,
       pauseReason: '',
+      suspendReason: '',
       accumulatedSeconds: 0,
       completedAt: null,
       durationSeconds: null,

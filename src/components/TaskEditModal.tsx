@@ -100,7 +100,7 @@ export const TaskEditModal: React.FC<Props> = ({
   const canPromptStatusReset =
     mode === 'edit' &&
     technicianChanged &&
-    (task.status === 'in_progress' || task.status === 'paused');
+    (task.status === 'in_progress' || task.status === 'paused' || task.status === 'suspended');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,8 +144,10 @@ export const TaskEditModal: React.FC<Props> = ({
           updates.status = 'pending';
           updates.acceptedAt = null;
           updates.pausedAt = null;
+          updates.suspendedAt = null;
           updates.resumedAt = null;
           updates.pauseReason = '';
+          updates.suspendReason = '';
           updates.accumulatedSeconds = 0;
           updates.lastBroadcastAt = nowIso;
         } else if (
