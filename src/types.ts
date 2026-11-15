@@ -10,6 +10,7 @@ export interface User {
   avatar?: string;
   specialty?: string;
   status: 'available' | 'busy' | 'offline';
+  deductionBalance?: number; // Strictly employee deduction balance only
 }
 
 // Exactly the 4 required types
@@ -50,6 +51,13 @@ export interface MaintenanceTask {
   status: TaskStatus;
   lastBroadcastAt?: string;
   resentCount?: number;
+  originallyBroadcast?: boolean; // True if task was dispatched to 'all'
+  deductionExempt?: boolean; // True if secondary task while an earlier task was active
+  deductionExemptReason?: string;
+  acceptDeductionApplied?: boolean;
+  acceptDeductionAmount?: number;
+  completionDeductionApplied?: boolean;
+  completionDeductionAmount?: number;
 }
 
 export type PageView = 'dispatch' | 'monitoring' | 'technician_queue' | 'archive';
@@ -65,3 +73,30 @@ export interface WhatsAppTemplateSettings {
   updatedBy?: string;
 }
 
+export interface DeductionSettings {
+  enabled: boolean;
+  unitLabel: string; // e.g., 'د.ع' | '%' | 'نقطة' | '$'
+  acceptDelayMinutes: number; // Allowed minutes before accept delay deduction applies
+  acceptDelayDeduction: number; // Deduction amount / percentage for late acceptance
+  completionDelayMinutes: number; // Allowed active minutes before completion delay deduction applies
+  completionDelayDeduction: number; // Deduction amount / percentage for late completion
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export type DeductionReason = 'accept_delay' | 'completion_delay';
+
+export interface DeductionRecord {
+  id: string;
+  userId: string;
+  userName: string;
+  taskId: string;
+  taskNumber: string;
+  reason: DeductionReason;
+  delayMinutes: number;
+  allowedMinutes: number;
+  amount: number;
+  unitLabel: string;
+  createdAt: string;
+  note?: string;
+}

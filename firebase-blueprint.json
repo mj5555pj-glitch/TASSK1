@@ -32,6 +32,13 @@
         "expiresAt": { "type": "string" },
         "lastBroadcastAt": { "type": "string" },
         "resentCount": { "type": "number" },
+        "originallyBroadcast": { "type": "boolean" },
+        "deductionExempt": { "type": "boolean" },
+        "deductionExemptReason": { "type": "string", "maxLength": 300 },
+        "acceptDeductionApplied": { "type": "boolean" },
+        "acceptDeductionAmount": { "type": "number" },
+        "completionDeductionApplied": { "type": "boolean" },
+        "completionDeductionAmount": { "type": "number" },
         "status": {
           "type": "string",
           "enum": ["pending", "in_progress", "paused", "suspended", "completed"]
@@ -41,7 +48,7 @@
     },
     "User": {
       "title": "User",
-      "description": "System manager or technician account credentials and profile",
+      "description": "System manager or technician account credentials, profile, and deduction balance",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
@@ -51,20 +58,46 @@
         "role": { "type": "string", "enum": ["manager", "technician"] },
         "phone": { "type": "string" },
         "specialty": { "type": "string" },
-        "status": { "type": "string" }
+        "status": { "type": "string" },
+        "deductionBalance": { "type": "number" }
       },
       "required": ["id", "username", "password", "fullName", "role"]
     },
     "Settings": {
-      "title": "WhatsAppTemplateSettings",
-      "description": "Global system settings such as the customizable subscriber WhatsApp message template",
+      "title": "SystemSettings",
+      "description": "Global system settings including WhatsApp message template and employee delay deduction rules",
       "type": "object",
       "properties": {
         "template": { "type": "string", "maxLength": 4000 },
+        "enabled": { "type": "boolean" },
+        "unitLabel": { "type": "string", "maxLength": 30 },
+        "acceptDelayMinutes": { "type": "number" },
+        "acceptDelayDeduction": { "type": "number" },
+        "completionDelayMinutes": { "type": "number" },
+        "completionDelayDeduction": { "type": "number" },
         "updatedAt": { "type": "string" },
         "updatedBy": { "type": "string" }
+      }
+    },
+    "DeductionRecord": {
+      "title": "DeductionRecord",
+      "description": "Recorded automatic deduction applied to a technician for accept or completion delay on their primary task",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "taskId": { "type": "string" },
+        "taskNumber": { "type": "string" },
+        "reason": { "type": "string", "enum": ["accept_delay", "completion_delay"] },
+        "delayMinutes": { "type": "number" },
+        "allowedMinutes": { "type": "number" },
+        "amount": { "type": "number" },
+        "unitLabel": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "note": { "type": "string", "maxLength": 300 }
       },
-      "required": ["template"]
+      "required": ["id", "userId", "userName", "taskId", "taskNumber", "reason", "amount", "createdAt"]
     }
   },
   "firestore": {
@@ -78,7 +111,11 @@
     },
     "/settings/{settingId}": {
       "schema": "Settings",
-      "description": "Collection of global app settings such as the WhatsApp message template"
+      "description": "Collection of global app settings (whatsapp template, deduction rules)"
+    },
+    "/deductions/{deductionId}": {
+      "schema": "DeductionRecord",
+      "description": "Collection of technician delay deduction records"
     }
   }
 }

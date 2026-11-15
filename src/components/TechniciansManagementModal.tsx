@@ -13,11 +13,15 @@ import {
   Eye, 
   EyeOff, 
   Wrench,
-  AlertCircle
+  AlertCircle,
+  Wallet
 } from 'lucide-react';
+import { formatDeductionAmount } from '../utils/deductions';
 
 interface Props {
   technicians: User[];
+  deductionUnitLabel?: string;
+  onOpenDeductions?: () => void;
   onSaveTechnician: (technician: User) => Promise<void>;
   onDeleteTechnician: (technicianId: string) => Promise<void>;
   onClose: () => void;
@@ -25,6 +29,8 @@ interface Props {
 
 export const TechniciansManagementModal: React.FC<Props> = ({
   technicians,
+  deductionUnitLabel = 'د.ع',
+  onOpenDeductions,
   onSaveTechnician,
   onDeleteTechnician,
   onClose,
@@ -114,6 +120,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
       specialty: specialty.trim() || 'صيانة شبكات وإنترنت',
       role: 'technician',
       status: editingTech ? editingTech.status : 'available',
+      deductionBalance: editingTech ? (editingTech.deductionBalance || 0) : 0,
     };
 
     try {
@@ -316,18 +323,33 @@ export const TechniciansManagementModal: React.FC<Props> = ({
             </form>
           </div>
         ) : (
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs text-slate-400">
               إجمالي الفنيين المسجلين: <strong className="text-white tabular-nums">{technicians.length}</strong>
             </span>
-            <button
-              type="button"
-              onClick={handleStartCreate}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-md transition-all"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>إضافة فني صيانة جديد</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {onOpenDeductions && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenDeductions();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold rounded-xl transition-all"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>أرصدة الخصومات</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleStartCreate}
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>إضافة فني صيانة جديد</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -351,6 +373,13 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                       <span className="font-bold text-sm text-white">{tech.fullName}</span>
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         {tech.specialty || 'صيانة شبكات'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border tabular-nums ${
+                        (tech.deductionBalance || 0) > 0
+                          ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                          : 'bg-slate-900 text-slate-400 border-slate-700'
+                      }`}>
+                        رصيد الخصومات: {formatDeductionAmount(tech.deductionBalance || 0, deductionUnitLabel)}
                       </span>
                     </div>
 

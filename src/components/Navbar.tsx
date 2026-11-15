@@ -10,7 +10,8 @@ import {
   Archive, 
   Clock, 
   Database,
-  MessageSquare
+  MessageSquare,
+  Wallet
 } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
@@ -24,6 +25,7 @@ interface Props {
   onOpenTechManagement?: () => void;
   onOpenManagerAccount?: () => void;
   onOpenWhatsAppTemplate?: () => void;
+  onOpenDeductions?: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -36,6 +38,7 @@ export const Navbar: React.FC<Props> = ({
   onOpenTechManagement,
   onOpenManagerAccount,
   onOpenWhatsAppTemplate,
+  onOpenDeductions,
 }) => {
   const isManager = currentUser.role === 'manager';
 
@@ -130,7 +133,19 @@ export const Navbar: React.FC<Props> = ({
                   title="تعديل نص رسالة الواتساب المرسلة للمشترك"
                 >
                   <MessageSquare className="w-3.5 h-3.5 text-teal-400" />
-                  <span>رسالة الواتساب</span>
+                  <span>الواتساب</span>
+                </button>
+              )}
+
+              {onOpenDeductions && (
+                <button
+                  type="button"
+                  onClick={onOpenDeductions}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-rose-300 hover:text-white hover:bg-rose-600/20 border border-rose-500/20 transition-colors whitespace-nowrap"
+                  title="رصيد خصومات الموظفين وإعدادات التأخير"
+                >
+                  <Wallet className="w-3.5 h-3.5 text-rose-400" />
+                  <span>الخصومات</span>
                 </button>
               )}
             </nav>
@@ -171,9 +186,9 @@ export const Navbar: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Mobile Sub-Navigation Bar for Manager - 5 equal grid columns, zero overflow */}
+        {/* Mobile Sub-Navigation Bar for Manager - 6 equal grid columns, zero overflow */}
         {isManager && (
-          <div className="grid grid-cols-5 gap-1 md:hidden border-t border-slate-800/80 py-1.5 text-[10px] w-full">
+          <div className="grid grid-cols-6 gap-1 md:hidden border-t border-slate-800/80 py-1.5 text-[10px] w-full">
             <button
               onClick={() => onPageChange('dispatch')}
               className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-all ${
@@ -224,6 +239,16 @@ export const Navbar: React.FC<Props> = ({
               >
                 <MessageSquare className="w-3.5 h-3.5 mb-0.5" />
                 <span className="truncate w-full text-center">الواتساب</span>
+              </button>
+            )}
+            {onOpenDeductions && (
+              <button
+                type="button"
+                onClick={onOpenDeductions}
+                className="flex flex-col items-center justify-center py-1 px-0.5 rounded-lg text-rose-400 font-bold hover:bg-slate-800"
+              >
+                <Wallet className="w-3.5 h-3.5 mb-0.5" />
+                <span className="truncate w-full text-center">الخصومات</span>
               </button>
             )}
           </div>

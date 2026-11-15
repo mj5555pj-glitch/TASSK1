@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, MaintenanceTask, PageView, AllowedTaskType } from './types';
+import { User, MaintenanceTask, PageView, AllowedTaskType, DeductionSettings, DeductionRecord } from './types';
 import { getUsers, getCurrentUser, setCurrentUser } from './utils/storage';
 import { 
   subscribeToFirestoreTasks, 
@@ -19,12 +19,23 @@ import {
   reassignTaskToAllInFirebase,
   purgeAllDemoTasks,
   subscribeToWhatsAppTemplate,
-  saveWhatsAppTemplateToFirebase
+  saveWhatsAppTemplateToFirebase,
+  subscribeToDeductionSettings,
+  saveDeductionSettingsToFirebase,
+  subscribeToDeductions,
+  applyTaskDeductionTransaction,
+  waiveDeductionRecordInFirebase,
+  resetEmployeeDeductionBalanceInFirebase
 } from './firebase';
 import { playNewTaskAlertSound, playSuccessSound, playOverdueAlertSound } from './utils/audio';
 import { sendDevicePushNotification, sendManagerOverdueNotification } from './utils/notifications';
 import { DEFAULT_WHATSAPP_TEMPLATE } from './utils/whatsapp';
 import { isTaskUnacceptedOverdue, getElapsedMinutes } from './utils/time';
+import { 
+  DEFAULT_DEDUCTION_SETTINGS, 
+  isTaskSecondaryOrExempt, 
+  getActiveTaskWorkingSeconds 
+} from './utils/deductions';
 import { LoginScreen } from './components/LoginScreen';
 import { Navbar } from './components/Navbar';
 import { DispatchPage } from './components/DispatchPage';
@@ -37,6 +48,7 @@ import { TechniciansManagementModal } from './components/TechniciansManagementMo
 import { ManagerOverdueModal } from './components/ManagerOverdueModal';
 import { ManagerAccountModal } from './components/ManagerAccountModal';
 import { WhatsAppTemplateModal } from './components/WhatsAppTemplateModal';
+import { DeductionsModal } from './components/DeductionsModal';
 import { TaskEditPayload } from './components/TaskEditModal';
 
 export default function App() {
@@ -50,12 +62,16 @@ export default function App() {
   const [showTechManagementModal, setShowTechManagementModal] = useState(false);
   const [showManagerAccountModal, setShowManagerAccountModal] = useState(false);
   const [showWhatsAppTemplateModal, setShowWhatsAppTemplateModal] = useState(false);
+  const [showDeductionsModal, setShowDeductionsModal] = useState(false);
   const [whatsappTemplate, setWhatsappTemplate] = useState<string>(DEFAULT_WHATSAPP_TEMPLATE);
+  const [deductionSettings, setDeductionSettings] = useState<DeductionSettings>(DEFAULT_DEDUCTION_SETTINGS);
+  const [deductionRecords, setDeductionRecords] = useState<DeductionRecord[]>([]);
   const [dismissedOverdueTaskIds, setDismissedOverdueTaskIds] = useState<Set<string>>(new Set());
 
   const knownTaskIdsRef = useRef<Set<string>>(new Set());
   const knownBroadcastsRef = useRef<Map<string, string>>(new Map());
   const alertedOverdueTaskIdsRef = useRef<Set<string>>(new Set());
+  const inFlightDeductionsRef = useRef<Set<string>>(new Set());
   const isInitialSnapshotRef = useRef<boolean>(true);
   const currentUserRef = useRef<User | null>(null);
 
@@ -165,10 +181,20 @@ export default function App() {
       setWhatsappTemplate(tmpl);
     });
 
+    // Subscribe to manager deduction settings & deduction records ledger
+    const unsubDeductionSettings = subscribeToDeductionSettings((cfg) => {
+      setDeductionSettings(cfg);
+    });
+    const unsubDeductions = subscribeToDeductions((records) => {
+      setDeductionRecords(records);
+    });
+
     return () => {
       unsubUsers();
       unsubTasks();
       unsubWhatsAppTemplate();
+      unsubDeductionSettings();
+      unsubDeductions();
     };
   }, []);
 
@@ -202,6 +228,102 @@ export default function App() {
     return () => clearInterval(interval);
   }, [tasks]);
 
+  // Automatic Employee Delay Deduction Engine (applies to primary task ONLY, exempts secondary tasks)
+  useEffect(() => {
+    if (!isLoaded || !currentUser || !deductionSettings.enabled) return;
+
+    const evaluateDeductions = () => {
+      const now = Date.now();
+      const recordedIds = new Set(deductionRecords.map((r) => r.id));
+
+      tasks.forEach((task) => {
+        if (!task.assignedToId || task.assignedToId === 'all') return;
+
+        // Enforce: ONLY first active task is eligible; secondary tasks are exempt
+        if (isTaskSecondaryOrExempt(task, tasks)) return;
+
+        const tech = users.find((u) => u.id === task.assignedToId && u.role === 'technician');
+        if (!tech) return;
+
+        // 1. Accept Delay Deduction Check
+        if (
+          !task.originallyBroadcast &&
+          !task.acceptDeductionApplied &&
+          !recordedIds.has(`${task.id}_accept`) &&
+          deductionSettings.acceptDelayMinutes > 0 &&
+          deductionSettings.acceptDelayDeduction > 0
+        ) {
+          const createdMs = new Date(task.createdAt).getTime();
+          const acceptEndMs = task.acceptedAt
+            ? new Date(task.acceptedAt).getTime()
+            : task.completedAt
+            ? new Date(task.completedAt).getTime()
+            : now;
+
+          if (!isNaN(createdMs) && !isNaN(acceptEndMs)) {
+            const acceptElapsedMs = Math.max(0, acceptEndMs - createdMs);
+            if (acceptElapsedMs >= deductionSettings.acceptDelayMinutes * 60 * 1000) {
+              const lockKey = `${task.id}_accept`;
+              if (!inFlightDeductionsRef.current.has(lockKey)) {
+                inFlightDeductionsRef.current.add(lockKey);
+                applyTaskDeductionTransaction({
+                  taskId: task.id,
+                  taskNumber: task.taskNumber,
+                  userId: tech.id,
+                  userName: tech.fullName,
+                  reason: 'accept_delay',
+                  delayMinutes: Math.floor(acceptElapsedMs / 60000),
+                  allowedMinutes: deductionSettings.acceptDelayMinutes,
+                  amount: deductionSettings.acceptDelayDeduction,
+                  unitLabel: deductionSettings.unitLabel || 'د.ع',
+                  note: `تجاوز مهلة قبول المهمة (${deductionSettings.acceptDelayMinutes} دقيقة)`,
+                }).finally(() => {
+                  inFlightDeductionsRef.current.delete(lockKey);
+                });
+              }
+            }
+          }
+        }
+
+        // 2. Completion Delay Deduction Check (based on active working seconds excluding pauses/holds)
+        if (
+          task.acceptedAt &&
+          !task.completionDeductionApplied &&
+          !recordedIds.has(`${task.id}_complete`) &&
+          deductionSettings.completionDelayMinutes > 0 &&
+          deductionSettings.completionDelayDeduction > 0
+        ) {
+          const completionRefMs = task.completedAt ? new Date(task.completedAt).getTime() : now;
+          const activeSecs = getActiveTaskWorkingSeconds(task, completionRefMs);
+          if (activeSecs >= deductionSettings.completionDelayMinutes * 60) {
+            const lockKey = `${task.id}_complete`;
+            if (!inFlightDeductionsRef.current.has(lockKey)) {
+              inFlightDeductionsRef.current.add(lockKey);
+              applyTaskDeductionTransaction({
+                taskId: task.id,
+                taskNumber: task.taskNumber,
+                userId: tech.id,
+                userName: tech.fullName,
+                reason: 'completion_delay',
+                delayMinutes: Math.floor(activeSecs / 60),
+                allowedMinutes: deductionSettings.completionDelayMinutes,
+                amount: deductionSettings.completionDelayDeduction,
+                unitLabel: deductionSettings.unitLabel || 'د.ع',
+                note: `تجاوز مهلة إنجاز المهمة (${deductionSettings.completionDelayMinutes} دقيقة)`,
+              }).finally(() => {
+                inFlightDeductionsRef.current.delete(lockKey);
+              });
+            }
+          }
+        }
+      });
+    };
+
+    evaluateDeductions();
+    const interval = setInterval(evaluateDeductions, 10000);
+    return () => clearInterval(interval);
+  }, [isLoaded, currentUser, tasks, users, deductionSettings, deductionRecords]);
+
   const handleLogin = (user: User) => {
     setLoggedUser(user);
     setCurrentUser(user);
@@ -217,7 +339,7 @@ export default function App() {
     setCurrentUser(null);
   };
 
-  // Add task to Firebase
+  // Add task to Firebase (exempts secondary tasks if technician already has an active uncompleted task)
   const handleAddTask = async (taskData: {
     taskType: AllowedTaskType;
     subscriberName: string;
@@ -227,9 +349,23 @@ export default function App() {
     assignedToName: string;
   }) => {
     if (!currentUser) return;
+    const isSpecificTech = taskData.assignedToId && taskData.assignedToId !== 'all';
+    const hasEarlierActiveTask = isSpecificTech
+      ? tasks.some(
+          (t) =>
+            t.assignedToId === taskData.assignedToId &&
+            t.status !== 'completed' &&
+            !t.completedAt
+        )
+      : false;
+
     await addTaskToFirebase({
       ...taskData,
       createdBy: currentUser.fullName,
+      deductionExempt: hasEarlierActiveTask,
+      deductionExemptReason: hasEarlierActiveTask
+        ? 'مهمة إضافية — يُطبق الخصم على المهمة الأولى فقط'
+        : '',
     });
     playSuccessSound();
   };
@@ -237,10 +373,31 @@ export default function App() {
   // Technician accepts task (claims it for themselves if it was assigned to all)
   const handleAcceptTask = async (taskId: string) => {
     if (currentUser) {
-      await acceptTaskInFirebase(taskId, {
-        id: currentUser.id,
-        fullName: currentUser.fullName,
-      });
+      const targetTask = tasks.find((t) => t.id === taskId);
+      const wasBroadcast = !targetTask?.assignedToId || targetTask.assignedToId === 'all';
+      const techAlreadyHasActiveTask = wasBroadcast
+        ? tasks.some(
+            (t) =>
+              t.id !== taskId &&
+              t.assignedToId === currentUser.id &&
+              t.status !== 'completed' &&
+              !t.completedAt
+          )
+        : false;
+
+      await acceptTaskInFirebase(
+        taskId,
+        {
+          id: currentUser.id,
+          fullName: currentUser.fullName,
+        },
+        techAlreadyHasActiveTask
+          ? {
+              deductionExempt: true,
+              deductionExemptReason: 'مهمة إضافية — يُطبق الخصم على المهمة الأولى فقط',
+            }
+          : undefined
+      );
     } else {
       await acceptTaskInFirebase(taskId);
     }
@@ -325,17 +482,74 @@ export default function App() {
     task: MaintenanceTask,
     overrides: TaskEditPayload
   ) => {
-    await resendExistingTaskInFirebase(task, overrides);
+    const isSpecificTech = overrides.assignedToId && overrides.assignedToId !== 'all';
+    const hasEarlierActiveTask = isSpecificTech
+      ? tasks.some(
+          (t) =>
+            t.id !== task.id &&
+            t.assignedToId === overrides.assignedToId &&
+            t.status !== 'completed' &&
+            !t.completedAt
+        )
+      : false;
+
+    await resendExistingTaskInFirebase(task, {
+      ...overrides,
+      deductionExempt: hasEarlierActiveTask,
+      deductionExemptReason: hasEarlierActiveTask
+        ? 'مهمة إضافية — يُطبق الخصم على المهمة الأولى فقط'
+        : '',
+    });
     alertedOverdueTaskIdsRef.current.delete(task.id);
     playSuccessSound();
   };
 
   // Manager resends a completed task as a brand new pending task
   const handleResendCompletedTask = async (data: TaskEditPayload) => {
+    const isSpecificTech = data.assignedToId && data.assignedToId !== 'all';
+    const hasEarlierActiveTask = isSpecificTech
+      ? tasks.some(
+          (t) =>
+            t.assignedToId === data.assignedToId &&
+            t.status !== 'completed' &&
+            !t.completedAt
+        )
+      : false;
+
     await addTaskToFirebase({
       ...data,
       createdBy: currentUser?.fullName || 'المدير',
+      deductionExempt: hasEarlierActiveTask,
+      deductionExemptReason: hasEarlierActiveTask
+        ? 'مهمة إضافية — يُطبق الخصم على المهمة الأولى فقط'
+        : '',
     });
+    playSuccessSound();
+  };
+
+  // Manager updates deduction rules settings
+  const handleSaveDeductionSettings = async (settings: DeductionSettings) => {
+    await saveDeductionSettingsToFirebase({
+      ...settings,
+      updatedAt: new Date().toISOString(),
+      updatedBy: currentUser?.fullName || 'المدير',
+    });
+    setDeductionSettings(settings);
+    playSuccessSound();
+  };
+
+  // Manager waives a specific deduction record
+  const handleWaiveDeductionRecord = async (record: DeductionRecord) => {
+    await waiveDeductionRecordInFirebase(record);
+    playSuccessSound();
+  };
+
+  // Manager resets an employee's deduction balance to 0
+  const handleResetEmployeeDeductionBalance = async (
+    userId: string,
+    records: DeductionRecord[]
+  ) => {
+    await resetEmployeeDeductionBalanceInFirebase(userId, records);
     playSuccessSound();
   };
 
@@ -393,6 +607,7 @@ export default function App() {
         onOpenTechManagement={() => setShowTechManagementModal(true)}
         onOpenManagerAccount={() => setShowManagerAccountModal(true)}
         onOpenWhatsAppTemplate={() => setShowWhatsAppTemplateModal(true)}
+        onOpenDeductions={() => setShowDeductionsModal(true)}
       />
 
       {/* Main Pages View */}
@@ -402,6 +617,8 @@ export default function App() {
             technician={currentUser}
             tasks={tasks}
             whatsappTemplate={whatsappTemplate}
+            deductionSettings={deductionSettings}
+            deductionRecords={deductionRecords}
             onAcceptTask={handleAcceptTask}
             onPauseTask={handlePauseTask}
             onSuspendTask={handleSuspendTask}
@@ -493,18 +710,23 @@ export default function App() {
       {showTechManagementModal && currentUser.role === 'manager' && (
         <TechniciansManagementModal
           technicians={technicians}
+          deductionUnitLabel={deductionSettings.unitLabel}
+          onOpenDeductions={() => setShowDeductionsModal(true)}
           onSaveTechnician={handleSaveTechnician}
           onDeleteTechnician={handleDeleteTechnician}
           onClose={() => setShowTechManagementModal(false)}
         />
       )}
 
-      {/* Manager Self Account Management Modal */}
+      {/* Manager Self Account Management Modal (includes Deduction Settings) */}
       {showManagerAccountModal && currentUser.role === 'manager' && (
         <ManagerAccountModal
           manager={currentUser}
           allUsers={users}
+          deductionSettings={deductionSettings}
           onSave={handleSaveManager}
+          onSaveDeductionSettings={handleSaveDeductionSettings}
+          onOpenDeductionBalances={() => setShowDeductionsModal(true)}
           onClose={() => setShowManagerAccountModal(false)}
         />
       )}
@@ -516,6 +738,19 @@ export default function App() {
           managerName={currentUser.fullName}
           onSave={handleSaveWhatsAppTemplate}
           onClose={() => setShowWhatsAppTemplateModal(false)}
+        />
+      )}
+
+      {/* Manager Employee Deduction Balances & Settings Modal */}
+      {showDeductionsModal && currentUser.role === 'manager' && (
+        <DeductionsModal
+          technicians={technicians}
+          deductionSettings={deductionSettings}
+          deductionRecords={deductionRecords}
+          onSaveSettings={handleSaveDeductionSettings}
+          onWaiveRecord={handleWaiveDeductionRecord}
+          onResetEmployeeBalance={handleResetEmployeeDeductionBalance}
+          onClose={() => setShowDeductionsModal(false)}
         />
       )}
 

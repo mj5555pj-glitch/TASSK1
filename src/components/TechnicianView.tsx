@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { User, MaintenanceTask } from '../types';
+import { User, MaintenanceTask, DeductionSettings, DeductionRecord } from '../types';
 import { 
   formatArabicDateTime, 
   formatDigitalTimer, 
   getRetentionCountdown 
 } from '../utils/time';
 import { getTelUrl } from '../utils/whatsapp';
+import { 
+  DEFAULT_DEDUCTION_SETTINGS, 
+  formatDeductionAmount, 
+  getDeductionReasonLabel, 
+  isTaskSecondaryOrExempt 
+} from '../utils/deductions';
 import { WhatsAppPreviewModal } from './WhatsAppPreviewModal';
 import { NotificationSettingsBanner } from './NotificationSettingsBanner';
 import { 
@@ -25,13 +31,18 @@ import {
   PauseCircle,
   Pause,
   PlayCircle,
-  Lock
+  Lock,
+  Wallet,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface Props {
   technician: User;
   tasks: MaintenanceTask[];
   whatsappTemplate?: string;
+  deductionSettings?: DeductionSettings;
+  deductionRecords?: DeductionRecord[];
   onAcceptTask: (taskId: string) => Promise<void>;
   onPauseTask: (task: MaintenanceTask, pauseReason?: string) => Promise<void>;
   onSuspendTask: (task: MaintenanceTask, suspendReason?: string) => Promise<void>;
@@ -43,6 +54,8 @@ export const TechnicianView: React.FC<Props> = ({
   technician,
   tasks,
   whatsappTemplate,
+  deductionSettings = DEFAULT_DEDUCTION_SETTINGS,
+  deductionRecords = [],
   onAcceptTask,
   onPauseTask,
   onSuspendTask,
@@ -50,6 +63,7 @@ export const TechnicianView: React.FC<Props> = ({
   onCompleteTask,
 }) => {
   const [activeTab, setActiveTab] = useState<'broadcast' | 'pending' | 'in_progress' | 'paused' | 'suspended' | 'completed' | 'all'>('broadcast');
+  const [deductionListCollapsed, setDeductionListCollapsed] = useState(false);
   const [selectedTaskForWhatsApp, setSelectedTaskForWhatsApp] = useState<MaintenanceTask | null>(null);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
   const [completionNotes, setCompletionNotes] = useState('');
@@ -284,6 +298,173 @@ export const TechnicianView: React.FC<Props> = ({
 
       {/* Push Notification Setup & Test Banner */}
       <NotificationSettingsBanner />
+
+      {/* رصيد الخصومات ونسب الخصم وتفاصيل أسباب الخصم الخاص بالموظف */}
+      {(() => {
+        const myBalance = typeof technician.deductionBalance === 'number' ? technician.deductionBalance : 0;
+        const myDeductions = deductionRecords.filter((r) => r.userId === technician.id);
+        const acceptDeductionsTotal = myDeductions
+          .filter((r) => r.reason === 'accept_delay')
+          .reduce((sum, r) => sum + (r.amount || 0), 0);
+        const completionDeductionsTotal = myDeductions
+          .filter((r) => r.reason === 'completion_delay')
+          .reduce((sum, r) => sum + (r.amount || 0), 0);
+        const isDetailsVisible = !deductionListCollapsed;
+
+        return (
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-lg transition-all space-y-3.5 ${
+            myBalance > 0
+              ? 'bg-slate-900 border-rose-500/40 shadow-rose-950/15'
+              : 'bg-slate-900 border-slate-800'
+          }`}>
+            {/* Header Row: Title + Total Deduction Balance */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center shrink-0 ${
+                  myBalance > 0
+                    ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                    : 'bg-slate-800 text-slate-300 border-slate-700'
+                }`}>
+                  <Wallet className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm sm:text-base font-bold text-white">رصيد الخصومات ونسبة الخصم</span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                      رصيد خصومات فقط
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    يوضح رصيد الخصومات المترتب عليك، نسبة/مقدار الخصم المعتمد، وسبب كل خصم تم تسجيله
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-center">
+                <div className={`px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-black tabular-nums ${
+                  myBalance > 0
+                    ? 'bg-rose-500/15 border-rose-500/35 text-rose-300'
+                    : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300'
+                }`}>
+                  الرصيد: {formatDeductionAmount(myBalance, deductionSettings.unitLabel)}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setDeductionListCollapsed(!deductionListCollapsed)}
+                  className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 border border-slate-700 cursor-pointer"
+                >
+                  <span>{isDetailsVisible ? 'إخفاء التفاصيل' : `عرض التفاصيل (${myDeductions.length})`}</span>
+                  {isDetailsVisible ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* نسب ومقادير الخصم المعتمدة من المدير (تظهر دائماً للموظف) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-amber-500/25 flex items-center justify-between gap-2">
+                <div>
+                  <span className="text-[11px] font-bold text-amber-300 block">نسبة / مقدار خصم التأخير في قبول المهمة</span>
+                  <span className="text-[10px] text-slate-400">
+                    {deductionSettings.enabled
+                      ? `يُخصم عند التأخير أكثر من ${deductionSettings.acceptDelayMinutes} دقيقة (على المهمة الأولى فقط)`
+                      : 'متوقف حالياً من إعدادات المدير'}
+                  </span>
+                  {acceptDeductionsTotal > 0 && (
+                    <span className="text-[10px] text-rose-400 font-bold block mt-0.5">
+                      مجموع خصم تأخير القبول عليك: -{formatDeductionAmount(acceptDeductionsTotal, deductionSettings.unitLabel)}
+                    </span>
+                  )}
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-black tabular-nums shrink-0">
+                  {formatDeductionAmount(deductionSettings.acceptDelayDeduction, deductionSettings.unitLabel)}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-rose-500/25 flex items-center justify-between gap-2">
+                <div>
+                  <span className="text-[11px] font-bold text-rose-300 block">نسبة / مقدار خصم التأخير في إنجاز المهمة</span>
+                  <span className="text-[10px] text-slate-400">
+                    {deductionSettings.enabled
+                      ? `يُخصم عند تجاوز ${deductionSettings.completionDelayMinutes} دقيقة عمل فعلي (على المهمة الأولى فقط)`
+                      : 'متوقف حالياً من إعدادات المدير'}
+                  </span>
+                  {completionDeductionsTotal > 0 && (
+                    <span className="text-[10px] text-rose-400 font-bold block mt-0.5">
+                      مجموع خصم تأخير الإنجاز عليك: -{formatDeductionAmount(completionDeductionsTotal, deductionSettings.unitLabel)}
+                    </span>
+                  )}
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-black tabular-nums shrink-0">
+                  {formatDeductionAmount(deductionSettings.completionDelayDeduction, deductionSettings.unitLabel)}
+                </span>
+              </div>
+            </div>
+
+            {/* سجل الخصومات التفصيلي (لماذا تم خصمه وكم مقدار الخصم) */}
+            {isDetailsVisible && (
+              <div className="pt-3 border-t border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-300">
+                    سجل وأسباب الخصومات المطبقة عليك ({myDeductions.length})
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    المهام الثانية والإضافية معفاة تلقائياً
+                  </span>
+                </div>
+
+                {myDeductions.length === 0 ? (
+                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs text-slate-400 text-center">
+                    لا توجد أي خصومات مسجلة عليك حالياً.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {myDeductions.map((rec) => {
+                      const relatedTask = tasks.find((t) => t.id === rec.taskId);
+                      const isAcceptedRelated = !!relatedTask?.acceptedAt;
+
+                      return (
+                        <div
+                          key={rec.id}
+                          className="p-3 rounded-xl bg-slate-950 border border-rose-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono font-bold text-blue-400" dir="ltr">{rec.taskNumber}</span>
+                              <span className="px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/25 text-[10px] font-bold">
+                                سبب الخصم: {getDeductionReasonLabel(rec.reason)}
+                              </span>
+                              {isAcceptedRelated && relatedTask?.subscriberName && (
+                                <span className="text-[11px] text-slate-300 font-semibold">
+                                  ({relatedTask.subscriberName})
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-slate-400">
+                              {rec.reason === 'accept_delay'
+                                ? `تأخرت في قبول المهمة (${rec.delayMinutes} دقيقة) بينما المدة المسموحة للقبول (${rec.allowedMinutes} دقيقة).`
+                                : `تجاوزت مدة إنجاز المهمة (${rec.delayMinutes} دقيقة عمل) بينما المدة المسموحة للإنجاز (${rec.allowedMinutes} دقيقة).`}
+                            </div>
+                            <div className="text-[10px] text-slate-500">
+                              وقت تسجيل الخصم: {formatArabicDateTime(rec.createdAt)}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                            <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 font-black text-rose-300 tabular-nums">
+                              مقدار الخصم: -{formatDeductionAmount(rec.amount, rec.unitLabel)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* بطاقة جديدة في حساب الفني للمهام المرسلة للكل */}
       <div className="bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-xl shadow-emerald-950/20 space-y-3.5">
@@ -598,10 +779,28 @@ export const TechnicianView: React.FC<Props> = ({
                   </div>
 
                   {/* نوع المهمة (صيانة / تنصيب / ضعف / مشاكل اخرى) */}
-                  <div className="mt-3.5">
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
                     <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold border ${getTaskTypeBadge(task.taskType)}`}>
                       نوع المهمة: {task.taskType}
                     </span>
+
+                    {isTaskSecondaryOrExempt(task, tasks) && (
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                        مهمة إضافية — معفاة من الخصم
+                      </span>
+                    )}
+
+                    {(task.acceptDeductionAmount || 0) > 0 && (
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                        خصم تأخير قبول: -{formatDeductionAmount(task.acceptDeductionAmount || 0, deductionSettings.unitLabel)}
+                      </span>
+                    )}
+
+                    {(task.completionDeductionAmount || 0) > 0 && (
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                        خصم تأخير إنجاز: -{formatDeductionAmount(task.completionDeductionAmount || 0, deductionSettings.unitLabel)}
+                      </span>
+                    )}
                   </div>
 
                   {isPending ? (
