@@ -31,23 +31,23 @@ export const ManagerOverdueModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 p-2 sm:p-4 pointer-events-none flex justify-center" dir="rtl">
-      <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-4xl bg-slate-900/95 border-2 border-rose-500/70 rounded-2xl shadow-2xl shadow-rose-950/60 backdrop-blur-md pointer-events-auto overflow-hidden animate-in slide-in-from-top-4 duration-300">
+      <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-4xl bg-white/95 dark:bg-slate-900/95 border-2 border-rose-500/70 rounded-2xl shadow-2xl shadow-rose-500/20 dark:shadow-rose-950/60 backdrop-blur-md pointer-events-auto overflow-hidden animate-in slide-in-from-top-4 duration-300">
         {/* Header with pulsating alert warning */}
-        <div className="bg-gradient-to-r from-rose-950/90 via-rose-900/70 to-slate-900 p-3 sm:p-4 border-b border-rose-500/30 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-rose-50 via-rose-100/70 to-white dark:from-rose-950/90 dark:via-rose-900/70 dark:to-slate-900 p-3 sm:p-4 border-b border-rose-200 dark:border-rose-500/30 flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-600/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 animate-pulse">
-              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-100 dark:bg-rose-600/20 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-500/40 flex items-center justify-center shrink-0 animate-pulse">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600 dark:text-rose-400" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <h3 className="text-sm sm:text-lg font-black text-rose-200 truncate">
+                <h3 className="text-sm sm:text-lg font-black text-rose-800 dark:text-rose-200 truncate">
                   تنبيه عاجل للمدير: طلبات لم تُقبل!
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-rose-500 text-white animate-pulse shrink-0">
+                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-rose-600 text-white animate-pulse shrink-0">
                   {overdueTasks.length} {overdueTasks.length === 1 ? 'مهمة' : 'مهام'}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-rose-300/80 mt-0.5 truncate">
+              <p className="text-[11px] sm:text-xs text-rose-700 dark:text-rose-300/80 mt-0.5 truncate">
                 مضى أكثر من 15 دقيقة على إرسال المهام دون قبول
               </p>
             </div>
@@ -56,7 +56,7 @@ export const ManagerOverdueModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={onDismiss}
-            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors shrink-0"
+            className="p-1.5 sm:p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-rose-100 dark:hover:bg-slate-800 transition-colors shrink-0"
             title="إخفاء التنبيه مؤقتاً"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -71,35 +71,35 @@ export const ManagerOverdueModal: React.FC<Props> = ({
             return (
               <div
                 key={task.id}
-                className="bg-slate-950 border border-rose-500/40 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-rose-500/70 transition-colors"
+                className="bg-slate-50 dark:bg-slate-950 border border-rose-200 dark:border-rose-500/40 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-rose-400 dark:hover:border-rose-500/70 transition-colors"
               >
                 {/* Details */}
                 <div className="space-y-1.5 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-slate-300" dir="ltr">
+                    <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300" dir="ltr">
                       {task.taskNumber}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30">
                       نوع المهمة: {task.taskType}
                     </span>
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30">
                       <Clock className="w-3.5 h-3.5 animate-spin" />
                       <span>مضى {elapsedMins} دقيقة دون قبول!</span>
                     </span>
                   </div>
 
-                  <div className="text-sm font-bold text-white flex items-center gap-2">
+                  <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>المشترك: {task.subscriberName}</span>
-                    <span className="text-xs font-mono text-slate-400" dir="ltr">({task.phone})</span>
+                    <span className="text-xs font-mono text-slate-500 dark:text-slate-400" dir="ltr">({task.phone})</span>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
-                    <span>وقت الإرسال: <strong className="text-slate-300">{formatArabicDateTime(task.createdAt)}</strong></span>
-                    <span>التوجيه الحالي: <strong className="text-emerald-400">{task.assignedToName}</strong></span>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+                    <span>وقت الإرسال: <strong className="text-slate-800 dark:text-slate-300">{formatArabicDateTime(task.createdAt)}</strong></span>
+                    <span>التوجيه الحالي: <strong className="text-emerald-700 dark:text-emerald-400">{task.assignedToName}</strong></span>
                   </div>
 
                   {task.notes && (
-                    <p className="text-xs text-slate-400 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900/60 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
                       {task.notes}
                     </p>
                   )}
@@ -123,7 +123,7 @@ export const ManagerOverdueModal: React.FC<Props> = ({
                   {/* Direct Phone Call */}
                   <a
                     href={getTelUrl(task.phone)}
-                    className="p-2 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl border border-blue-500/30 transition-colors flex items-center justify-center"
+                    className="p-2 bg-blue-50 hover:bg-blue-600 dark:bg-blue-600/20 dark:hover:bg-blue-600 text-blue-700 dark:text-blue-400 hover:text-white rounded-xl border border-blue-200 dark:border-blue-500/30 transition-colors flex items-center justify-center"
                     title="اتصال هاتفي بالمشترك"
                   >
                     <Phone className="w-4 h-4" />
@@ -133,7 +133,7 @@ export const ManagerOverdueModal: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => onOpenWhatsApp(task)}
-                    className="p-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center"
+                    className="p-2 bg-emerald-50 hover:bg-emerald-600 dark:bg-emerald-600/20 dark:hover:bg-emerald-600 text-emerald-700 dark:text-emerald-400 hover:text-white rounded-xl border border-emerald-200 dark:border-emerald-500/30 transition-colors flex items-center justify-center"
                     title="مراسلة عبر واتساب"
                   >
                     <MessageSquare className="w-4 h-4" />
@@ -145,12 +145,12 @@ export const ManagerOverdueModal: React.FC<Props> = ({
         </div>
 
         {/* Footer info banner */}
-        <div className="bg-slate-950 p-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <div className="bg-slate-50 dark:bg-slate-950 p-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
           <span>يتم فحص المهام غير المقبولة تلقائياً كل دقيقة وتنبيه الإدارة صوتياً ورقمياً</span>
           <button
             type="button"
             onClick={onDismiss}
-            className="text-xs text-rose-400 hover:text-rose-300 font-semibold"
+            className="text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold"
           >
             إغلاق التنبيه
           </button>

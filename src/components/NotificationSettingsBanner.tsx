@@ -48,9 +48,9 @@ export const NotificationSettingsBanner: React.FC = () => {
 
   if (permission === 'granted') {
     return (
-      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-emerald-300">
+      <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-emerald-800 dark:text-emerald-300">
         <div className="flex items-center gap-2">
-          <BellRing className="w-4 h-4 text-emerald-400 shrink-0" />
+          <BellRing className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>الإشعارات الفورية مفعّلة على هذا الجهاز — ستصلك كافة المهام الجديدة فور إرسالها من المدير.</span>
         </div>
         <button
@@ -76,7 +76,7 @@ export const NotificationSettingsBanner: React.FC = () => {
             };
             sendDevicePushNotification(sampleTask);
           }}
-          className="px-2.5 py-1 bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white rounded-lg transition-colors font-medium text-[11px]"
+          className="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-600 dark:bg-emerald-600/30 dark:hover:bg-emerald-600 text-emerald-800 dark:text-emerald-200 hover:text-white rounded-lg transition-colors font-medium text-[11px]"
         >
           تجربة إشعار فوري
         </button>
@@ -85,9 +85,9 @@ export const NotificationSettingsBanner: React.FC = () => {
   }
 
   return (
-    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-300">
+    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-800 dark:text-amber-300">
       <div className="flex items-center gap-2">
-        <Bell className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+        <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 animate-pulse" />
         <span>
           لتصلك مهام الصيانة فور إرسالها بالصوت والاهتزاز حتى أثناء تصغير المتصفح، يرجى تفعيل إشعارات الجهاز.
         </span>

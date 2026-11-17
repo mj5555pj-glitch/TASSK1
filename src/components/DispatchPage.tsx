@@ -94,29 +94,29 @@ export const DispatchPage: React.FC<Props> = ({
   const getTaskIcon = (type: AllowedTaskType) => {
     switch (type) {
       case 'صيانة':
-        return <Wrench className="w-5 h-5 text-blue-400" />;
+        return <Wrench className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
       case 'تنصيب':
-        return <PlusCircle className="w-5 h-5 text-emerald-400" />;
+        return <PlusCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
       case 'ضعف':
-        return <Activity className="w-5 h-5 text-amber-400" />;
+        return <Activity className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
       case 'مشاكل اخرى':
-        return <HelpCircle className="w-5 h-5 text-purple-400" />;
+        return <HelpCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6" dir="rtl">
       {/* Page Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 transition-colors">
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h1 className="text-lg sm:text-2xl font-bold text-white">صفحة إرسال المهام</h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white">صفحة إرسال المهام</h1>
+            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
               <Database className="w-3.5 h-3.5" />
               <span>فايبر بيس (Firebase Firestore)</span>
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             تعبئة بطاقة إرسال المهمة وتوجيهها للفني مع تسجيل وقت الإرسال تلقائياً
           </p>
         </div>
@@ -126,31 +126,31 @@ export const DispatchPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={onOpenWhatsAppTemplate}
-              className="text-xs font-bold text-emerald-300 hover:text-white bg-emerald-600/15 hover:bg-emerald-600 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-emerald-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+              className="text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:text-white bg-emerald-50 dark:bg-emerald-600/15 hover:bg-emerald-600 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
               title="تعديل نص رسالة الواتساب الموجهة للمشترك وإضافة تفاصيل دائمة"
             >
               <MessageSquare className="w-4 h-4 shrink-0" />
               <span>تعديل رسالة الواتساب للمشترك</span>
             </button>
           )}
-          <div className="text-xs text-slate-400 bg-slate-950/80 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-slate-800 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
-            <span>مدة الاحتفاظ بالسجل: <strong>أسبوع كامل (7 أيام)</strong></span>
+          <div className="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/80 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span>مدة الاحتفاظ بالسجل: <strong className="text-slate-900 dark:text-slate-200">أسبوع كامل (7 أيام)</strong></span>
           </div>
         </div>
       </div>
 
       {/* Main Dispatch Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-8 shadow-2xl">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-8 shadow-sm dark:shadow-2xl transition-colors">
         {successToast && (
-          <div className="mb-6 p-3.5 sm:p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs sm:text-sm text-emerald-300 font-bold flex items-center gap-2.5 animate-in fade-in">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="mb-6 p-3.5 sm:p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 font-bold flex items-center gap-2.5 animate-in fade-in">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>{successToast}</span>
           </div>
         )}
 
         {error && (
-          <div className="mb-6 p-3.5 sm:p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs sm:text-sm text-rose-300 font-medium">
+          <div className="mb-6 p-3.5 sm:p-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl text-xs sm:text-sm text-rose-700 dark:text-rose-300 font-medium">
             {error}
           </div>
         )}
@@ -158,9 +158,9 @@ export const DispatchPage: React.FC<Props> = ({
         <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           {/* بطاقة ارسال المهمه: نوع المهمه فقط صيانة او تنصيب او ضعف او مشاكل اخرى */}
           <div>
-            <label className="block text-xs sm:text-sm font-bold text-slate-200 mb-2">
-              نوع المهمة <span className="text-red-400">*</span>
-              <span className="text-xs font-normal text-slate-400 mr-2">
+            <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">
+              نوع المهمة <span className="text-red-500 dark:text-red-400">*</span>
+              <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mr-2">
                 (اختر واحداً من الأنواع الأربعة المعتمدة):
               </span>
             </label>
@@ -175,23 +175,23 @@ export const DispatchPage: React.FC<Props> = ({
                     onClick={() => setSelectedTaskType(t.id)}
                     className={`p-3 sm:p-4 rounded-xl border text-right transition-all flex flex-col justify-between ${
                       isSelected
-                        ? 'bg-blue-600/20 border-blue-500 text-white shadow-md shadow-blue-900/30 ring-2 ring-blue-500/30'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+                        ? 'bg-blue-50 dark:bg-blue-600/20 border-blue-500 text-blue-950 dark:text-white shadow-sm dark:shadow-md dark:shadow-blue-900/30 ring-2 ring-blue-500/30'
+                        : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="p-1.5 sm:p-2 rounded-lg bg-slate-900 border border-slate-800">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                         {getTaskIcon(t.id)}
                       </div>
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        isSelected ? 'border-blue-400 bg-blue-500' : 'border-slate-600'
+                        isSelected ? 'border-blue-500 bg-blue-600' : 'border-slate-400 dark:border-slate-600'
                       }`}>
                         {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                       </div>
                     </div>
                     <div>
                       <div className="font-bold text-xs sm:text-sm">{t.label}</div>
-                      <div className="text-[10px] sm:text-[11px] text-slate-400 line-clamp-2 mt-0.5">
+                      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">
                         {t.description}
                       </div>
                     </div>
@@ -204,11 +204,11 @@ export const DispatchPage: React.FC<Props> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* اسم المشترك */}
             <div>
-              <label className="block text-xs font-bold text-slate-200 mb-1.5">
-                اسم المشترك <span className="text-red-400">*</span>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+                اسم المشترك <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                   <UserIcon className="w-4 h-4" />
                 </div>
                 <input
@@ -216,18 +216,18 @@ export const DispatchPage: React.FC<Props> = ({
                   value={subscriberName}
                   onChange={(e) => setSubscriberName(e.target.value)}
                   placeholder="مثال: حيدر كريم الأسدي"
-                  className="w-full pr-10 pl-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
 
             {/* رقم الهاتف */}
             <div>
-              <label className="block text-xs font-bold text-slate-200 mb-1.5">
-                رقم الهاتف <span className="text-red-400">*</span>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+                رقم الهاتف <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                   <Phone className="w-4 h-4" />
                 </div>
                 <input
@@ -236,7 +236,7 @@ export const DispatchPage: React.FC<Props> = ({
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="07XXXXXXXXX"
                   dir="ltr"
-                  className="w-full pr-10 pl-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 text-right font-mono placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 text-right font-mono placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -244,8 +244,8 @@ export const DispatchPage: React.FC<Props> = ({
 
           {/* خيار إرسال المهمة للكل بحيث يمكن لأي فني نسبها لنفسه أو تحديد فني */}
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-200">
-              توجيه المهمة والتكليف <span className="text-red-400">*</span>
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+              توجيه المهمة والتكليف <span className="text-red-500 dark:text-red-400">*</span>
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -254,18 +254,18 @@ export const DispatchPage: React.FC<Props> = ({
                 onClick={() => setDispatchTarget('all')}
                 className={`p-3.5 rounded-xl border text-right transition-all flex items-start gap-3 ${
                   dispatchTarget === 'all'
-                    ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-md ring-2 ring-emerald-500/30'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
+                    ? 'bg-emerald-50 dark:bg-emerald-600/20 border-emerald-500 text-emerald-950 dark:text-white shadow-sm dark:shadow-md ring-2 ring-emerald-500/30'
+                    : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
-                <div className="w-5 h-5 rounded-full border border-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                  {dispatchTarget === 'all' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />}
+                <div className="w-5 h-5 rounded-full border border-emerald-500 dark:border-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  {dispatchTarget === 'all' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />}
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
                     <span>📢 إرسال المهمة للكل (متاحة لجميع الفنيين)</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-normal">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-normal">
                     يصل إشعار فوري لكافة الفنيين، وتظهر في بطاقة الانتظار بحيث يمكن لأي فني قبولها ونسبها لنفسه فوراً.
                   </p>
                 </div>
@@ -276,18 +276,18 @@ export const DispatchPage: React.FC<Props> = ({
                 onClick={() => setDispatchTarget('specific')}
                 className={`p-3.5 rounded-xl border text-right transition-all flex items-start gap-3 ${
                   dispatchTarget === 'specific'
-                    ? 'bg-blue-600/20 border-blue-500 text-white shadow-md ring-2 ring-blue-500/30'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
+                    ? 'bg-blue-50 dark:bg-blue-600/20 border-blue-500 text-blue-950 dark:text-white shadow-sm dark:shadow-md ring-2 ring-blue-500/30'
+                    : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
-                <div className="w-5 h-5 rounded-full border border-blue-400 flex items-center justify-center shrink-0 mt-0.5">
-                  {dispatchTarget === 'specific' && <div className="w-2.5 h-2.5 rounded-full bg-blue-400" />}
+                <div className="w-5 h-5 rounded-full border border-blue-500 dark:border-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                  {dispatchTarget === 'specific' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-400" />}
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
                     <span>👤 تحديد فني معين للمهمة</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-normal">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-normal">
                     إرسال المهمة حصراً لفني محدد بالاسم وتكليفه بالمهمة مباشرة.
                   </p>
                 </div>
@@ -297,13 +297,13 @@ export const DispatchPage: React.FC<Props> = ({
             {/* Dropdown if specific technician selected */}
             {dispatchTarget === 'specific' && (
               <div className="mt-2 animate-in fade-in">
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   اختر الفني المكلف من القائمة:
                 </label>
                 <select
                   value={assignedTechId}
                   onChange={(e) => setAssignedTechId(e.target.value)}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
                 >
                   {technicians.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -317,11 +317,11 @@ export const DispatchPage: React.FC<Props> = ({
 
           {/* ملاحظات فقط */}
           <div>
-            <label className="block text-xs font-bold text-slate-200 mb-1.5">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
               ملاحظات فقط
             </label>
             <div className="relative">
-              <div className="absolute top-3 right-3 text-slate-500">
+              <div className="absolute top-3 right-3 text-slate-400 dark:text-slate-500">
                 <FileText className="w-4 h-4" />
               </div>
               <textarea
@@ -329,7 +329,7 @@ export const DispatchPage: React.FC<Props> = ({
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder="اكتب هنا تفاصيل العطل أو العنوان الدقيق أو أي ملاحظة خاصة بالمشترك..."
-                className="w-full pr-10 pl-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 resize-none"
               />
             </div>
           </div>

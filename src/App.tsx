@@ -50,8 +50,10 @@ import { ManagerAccountModal } from './components/ManagerAccountModal';
 import { WhatsAppTemplateModal } from './components/WhatsAppTemplateModal';
 import { DeductionsModal } from './components/DeductionsModal';
 import { TaskEditPayload } from './components/TaskEditModal';
+import { AppTheme, getStoredTheme, applyThemeToDocument } from './utils/theme';
 
 export default function App() {
+  const [theme, setTheme] = useState<AppTheme>(() => getStoredTheme());
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setLoggedUser] = useState<User | null>(null);
   const [tasks, setTasks] = useState<MaintenanceTask[]>([]);
@@ -79,6 +81,15 @@ export default function App() {
   useEffect(() => {
     currentUserRef.current = currentUser;
   }, [currentUser]);
+
+  // Apply and persist theme preference
+  useEffect(() => {
+    applyThemeToDocument(theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Initialize users & session & live Firestore listeners
   useEffect(() => {
@@ -562,7 +573,7 @@ export default function App() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-300 font-sans" dir="rtl">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center text-slate-700 dark:text-slate-300 font-sans transition-colors duration-200" dir="rtl">
         <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
         <div className="text-sm font-semibold">جاري الاتصال بقاعدة بيانات فايبر بيس (Firebase Firestore)...</div>
         <div className="text-xs text-slate-500 mt-1">تجهيز منظومة الصيانة وتحديث السجلات</div>
@@ -571,7 +582,7 @@ export default function App() {
   }
 
   if (!currentUser) {
-    return <LoginScreen users={users} onLogin={handleLogin} />;
+    return <LoginScreen users={users} onLogin={handleLogin} theme={theme} onToggleTheme={handleToggleTheme} />;
   }
 
   const technicians = users.filter((u) => u.role === 'technician');
@@ -595,13 +606,15 @@ export default function App() {
     : [];
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white" dir="rtl">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200" dir="rtl">
       {/* Navbar with Page Switcher & Technician Management */}
       <Navbar
         currentUser={currentUser}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
         pendingCount={pendingCount}
         inProgressCount={inProgressCount}
         onOpenTechManagement={() => setShowTechManagementModal(true)}
@@ -755,10 +768,10 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-4 text-center text-xs text-slate-500">
+      <footer className="border-t border-slate-200 dark:border-slate-900 bg-white/80 dark:bg-slate-950/80 py-4 text-center text-xs text-slate-600 dark:text-slate-500 transition-colors">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>منظومة إرسال وتوجيه مهام صيانة شبكات الإنترنت الميدانية</span>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
             قاعدة بيانات سحابية متصلة في فايبر بيس · إشعارات فورية وتنبيهات حية للأجهزة
           </span>
         </div>

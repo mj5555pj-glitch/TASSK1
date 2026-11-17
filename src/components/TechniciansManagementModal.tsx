@@ -155,20 +155,20 @@ export const TechniciansManagementModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/50 dark:bg-slate-950/85 backdrop-blur-md">
       <div 
-        className="relative w-full max-w-[calc(100vw-1.25rem)] sm:max-w-3xl bg-slate-900 border border-slate-700 rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 text-slate-100 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-[calc(100vw-1.25rem)] sm:max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 text-slate-900 dark:text-slate-100 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
         dir="rtl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 sm:pb-5 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 sm:pb-5 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-600/15 text-blue-400 border border-blue-500/20 flex items-center justify-center shadow-inner shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-50 dark:bg-blue-600/15 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 flex items-center justify-center shadow-inner shrink-0">
               <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-xl font-bold text-white truncate">إدارة وتعديل حسابات الفنيين</h2>
-              <p className="text-[11px] sm:text-xs text-slate-400 truncate">
+              <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white truncate">إدارة وتعديل حسابات الفنيين</h2>
+              <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 truncate">
                 إضافة فنيين، تعديل بياناتهم، تغيير اسم المستخدم وكلمة المرور
               </p>
             </div>
@@ -176,7 +176,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors shrink-0"
+            className="p-1.5 sm:p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
             title="إغلاق"
           >
             <X className="w-5 h-5" />
@@ -185,31 +185,31 @@ export const TechniciansManagementModal: React.FC<Props> = ({
 
         {/* Success Alert */}
         {successToast && (
-          <div className="mt-4 p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs sm:text-sm text-emerald-300 font-bold flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="mt-4 p-3.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>{successToast}</span>
           </div>
         )}
 
         {/* Add / Edit Form Card */}
         {(isCreating || editingTech) ? (
-          <div className="mt-6 p-5 sm:p-6 bg-slate-950 border border-blue-500/30 rounded-2xl shadow-lg space-y-4 animate-in fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-bold text-blue-300 flex items-center gap-2">
+          <div className="mt-6 p-5 sm:p-6 bg-slate-50 dark:bg-slate-950 border border-blue-200 dark:border-blue-500/30 rounded-2xl shadow-lg space-y-4 animate-in fade-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-sm font-bold text-blue-700 dark:text-blue-300 flex items-center gap-2">
                 <Wrench className="w-4 h-4" />
                 <span>{editingTech ? `تعديل حساب الفني: ${editingTech.fullName}` : 'إضافة حساب فني جديد'}</span>
               </h3>
               <button
                 type="button"
                 onClick={handleCancelForm}
-                className="text-xs text-slate-400 hover:text-white"
+                className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               >
                 إلغاء التعديل
               </button>
             </div>
 
             {error && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-300 font-medium">
+              <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl text-xs text-rose-700 dark:text-rose-300 font-medium">
                 {error}
               </div>
             )}
@@ -218,22 +218,22 @@ export const TechniciansManagementModal: React.FC<Props> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Full Name */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    اسم الفني الكامل <span className="text-red-400">*</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    اسم الفني الكامل <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="مثال: عمر الصالح"
-                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                    className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    رقم الهاتف <span className="text-red-400">*</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    رقم الهاتف <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <input
                     type="tel"
@@ -241,7 +241,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="07XXXXXXXXX"
                     dir="ltr"
-                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 text-right font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 text-right font-mono focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -249,8 +249,8 @@ export const TechniciansManagementModal: React.FC<Props> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Username */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    اسم المستخدم لتسجيل الدخول <span className="text-red-400">*</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    اسم المستخدم لتسجيل الدخول <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -259,7 +259,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="مثال: tech1 أو omar"
                       dir="ltr"
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 text-right font-mono focus:outline-none focus:border-blue-500"
+                      className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 text-right font-mono focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <span className="text-[10px] text-slate-500 mt-1 block">
@@ -269,8 +269,8 @@ export const TechniciansManagementModal: React.FC<Props> = ({
 
                 {/* Password */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    كلمة المرور لتسجيل الدخول <span className="text-red-400">*</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    كلمة المرور لتسجيل الدخول <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -279,7 +279,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       dir="ltr"
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 text-right font-mono focus:outline-none focus:border-blue-500"
+                      className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 text-right font-mono focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <span className="text-[10px] text-slate-500 mt-1 block">
@@ -290,7 +290,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
 
               {/* Specialty */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   تخصص الفني ومجال عمله
                 </label>
                 <input
@@ -298,16 +298,16 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                   value={specialty}
                   onChange={(e) => setSpecialty(e.target.value)}
                   placeholder="مثال: ألياف ضوئية فايبر FTTH، صيانة راوترات، إشارة نانوستيشن"
-                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                  className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={handleCancelForm}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700"
                 >
                   إلغاء
                 </button>
@@ -324,8 +324,8 @@ export const TechniciansManagementModal: React.FC<Props> = ({
           </div>
         ) : (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs text-slate-400">
-              إجمالي الفنيين المسجلين: <strong className="text-white tabular-nums">{technicians.length}</strong>
+            <span className="text-xs text-slate-600 dark:text-slate-400">
+              إجمالي الفنيين المسجلين: <strong className="text-slate-900 dark:text-white tabular-nums">{technicians.length}</strong>
             </span>
             <div className="flex flex-wrap items-center gap-2">
               {onOpenDeductions && (
@@ -335,7 +335,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                     onClose();
                     onOpenDeductions();
                   }}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold rounded-xl transition-all"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 text-xs font-bold rounded-xl transition-all"
                 >
                   <Wallet className="w-4 h-4" />
                   <span>أرصدة الخصومات</span>
@@ -356,7 +356,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
         {/* Technicians List Cards */}
         <div className="mt-5 space-y-3">
           {technicians.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/60 rounded-2xl border border-slate-800">
+            <div className="p-8 text-center text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/60 rounded-2xl border border-slate-200 dark:border-slate-800">
               لا يوجد فنيين مسجلين حالياً. اضغط على &quot;إضافة فني صيانة جديد&quot; للبدء.
             </div>
           ) : (
@@ -366,50 +366,50 @@ export const TechniciansManagementModal: React.FC<Props> = ({
               return (
                 <div
                   key={tech.id}
-                  className="p-4 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-4 bg-slate-50 dark:bg-slate-950/80 hover:bg-slate-100/70 dark:hover:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm text-white">{tech.fullName}</span>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="font-bold text-sm text-slate-900 dark:text-white">{tech.fullName}</span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
                         {tech.specialty || 'صيانة شبكات'}
                       </span>
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border tabular-nums ${
                         (tech.deductionBalance || 0) > 0
-                          ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-                          : 'bg-slate-900 text-slate-400 border-slate-700'
+                          ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/30'
+                          : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'
                       }`}>
                         رصيد الخصومات: {formatDeductionAmount(tech.deductionBalance || 0, deductionUnitLabel)}
                       </span>
                     </div>
 
                     {/* Credentials Info: Username & Password */}
-                    <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
+                    <div className="flex items-center gap-4 text-xs text-slate-600 dark:text-slate-400 flex-wrap">
                       <div className="flex items-center gap-1.5">
-                        <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+                        <KeyRound className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         <span>اسم المستخدم:</span>
-                        <code className="text-blue-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800" dir="ltr">
+                        <code className="text-blue-700 dark:text-blue-300 font-mono bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800" dir="ltr">
                           {tech.username}
                         </code>
                       </div>
 
                       <div className="flex items-center gap-1.5">
                         <span>كلمة المرور:</span>
-                        <code className="text-slate-200 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800" dir="ltr">
+                        <code className="text-slate-800 dark:text-slate-200 font-mono bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800" dir="ltr">
                           {isPasswordVisible ? (tech.password || '123') : '••••••••'}
                         </code>
                         <button
                           type="button"
                           onClick={() => togglePasswordVisibility(tech.id)}
-                          className="p-0.5 text-slate-400 hover:text-white"
+                          className="p-0.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                           title={isPasswordVisible ? 'إخفاء' : 'إظهار'}
                         >
                           {isPasswordVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
                       </div>
 
-                      <div className="flex items-center gap-1 text-slate-400">
-                        <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                        <Phone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         <span className="font-mono" dir="ltr">{tech.phone}</span>
                       </div>
                     </div>
@@ -420,7 +420,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={() => handleStartEdit(tech)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 text-xs font-semibold transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-600 dark:bg-blue-600/15 dark:hover:bg-blue-600 text-blue-700 dark:text-blue-400 hover:text-white border border-blue-200 dark:border-blue-500/20 text-xs font-semibold transition-colors"
                       title="تعديل بيانات الفني واسم المستخدم وكلمة المرور"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -430,7 +430,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={() => handleDelete(tech)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/20 text-xs font-semibold transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-600 text-rose-700 dark:text-rose-400 hover:text-white border border-rose-200 dark:border-rose-500/20 text-xs font-semibold transition-colors"
                       title="إزالة الفني من النظام"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -444,11 +444,11 @@ export const TechniciansManagementModal: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-slate-800 text-left">
+        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-left">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-colors"
+            className="px-5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
           >
             إغلاق النافذة
           </button>

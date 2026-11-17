@@ -193,19 +193,19 @@ export const TaskEditModal: React.FC<Props> = ({
       : 'سيتم إنشاء وإرسال مهمة صيانة جديدة بهذه البيانات مع بقاء السجل السابق محفوظاً في الأرشيف.';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/50 dark:bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-[calc(100vw-1.25rem)] sm:max-w-xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-4 sm:p-6 text-slate-100 animate-in zoom-in-95 duration-200 space-y-4 max-h-[92vh] overflow-y-auto"
+        className="relative w-full max-w-[calc(100vw-1.25rem)] sm:max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-4 sm:p-6 text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-200 space-y-4 max-h-[92vh] overflow-y-auto"
         dir="rtl"
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-800">
+        <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5 min-w-0">
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
                 mode === 'edit'
-                  ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
-                  : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                  ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/30'
+                  : 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30'
               }`}
             >
               {mode === 'edit' ? (
@@ -215,10 +215,10 @@ export const TaskEditModal: React.FC<Props> = ({
               )}
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm sm:text-base font-bold text-white truncate">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
                 {modalTitle}
               </h3>
-              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
                 {modalSubtitle}
               </p>
             </div>
@@ -227,7 +227,7 @@ export const TaskEditModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors shrink-0"
+            className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
             title="إغلاق"
           >
             <X className="w-5 h-5" />
@@ -235,15 +235,15 @@ export const TaskEditModal: React.FC<Props> = ({
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 font-medium flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-xs text-rose-700 dark:text-rose-300 font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-300 font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
@@ -251,7 +251,7 @@ export const TaskEditModal: React.FC<Props> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Task Type */}
           <div>
-            <label className="block text-xs font-bold text-slate-200 mb-1.5">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
               نوع المهمة:
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -264,8 +264,8 @@ export const TaskEditModal: React.FC<Props> = ({
                     onClick={() => setTaskType(t.id)}
                     className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all ${
                       selected
-                        ? 'bg-blue-600/25 border-blue-500 text-white ring-1 ring-blue-500/40'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                        ? 'bg-blue-50 dark:bg-blue-600/25 border-blue-500 text-blue-700 dark:text-white ring-1 ring-blue-500/40'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
                     {t.label}
@@ -278,33 +278,33 @@ export const TaskEditModal: React.FC<Props> = ({
           {/* Subscriber Name & Phone */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-200 mb-1.5">
-                اسم المشترك <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+                اسم المشترك <span className="text-rose-500 dark:text-rose-400">*</span>
               </label>
               <div className="relative">
-                <UserIcon className="w-4 h-4 absolute right-3 top-2.5 text-slate-500 pointer-events-none" />
+                <UserIcon className="w-4 h-4 absolute right-3 top-2.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                 <input
                   type="text"
                   value={subscriberName}
                   onChange={(e) => setSubscriberName(e.target.value)}
-                  className="w-full pr-9 pl-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full pr-9 pl-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                   placeholder="اسم المشترك"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-200 mb-1.5">
-                رقم الهاتف <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+                رقم الهاتف <span className="text-rose-500 dark:text-rose-400">*</span>
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 absolute right-3 top-2.5 text-slate-500 pointer-events-none" />
+                <Phone className="w-4 h-4 absolute right-3 top-2.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   dir="ltr"
-                  className="w-full pr-9 pl-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-white text-right font-mono focus:outline-none focus:border-blue-500"
+                  className="w-full pr-9 pl-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white text-right font-mono focus:outline-none focus:border-blue-500"
                   placeholder="07XXXXXXXXX"
                 />
               </div>
@@ -312,8 +312,8 @@ export const TaskEditModal: React.FC<Props> = ({
           </div>
 
           {/* Assign / Switch Technician */}
-          <div className="space-y-2.5 p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-            <label className="block text-xs font-bold text-slate-200">
+          <div className="space-y-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
               توجيه وتبديل الفني المكلف:
             </label>
 
@@ -323,8 +323,8 @@ export const TaskEditModal: React.FC<Props> = ({
                 onClick={() => setDispatchTarget('all')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                   dispatchTarget === 'all'
-                    ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                    ? 'bg-emerald-50 dark:bg-emerald-600/20 border-emerald-500 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
@@ -336,8 +336,8 @@ export const TaskEditModal: React.FC<Props> = ({
                 onClick={() => setDispatchTarget('specific')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                   dispatchTarget === 'specific'
-                    ? 'bg-blue-600/20 border-blue-500 text-blue-300'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                    ? 'bg-blue-50 dark:bg-blue-600/20 border-blue-500 text-blue-700 dark:text-blue-300'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <UserIcon className="w-3.5 h-3.5" />
@@ -350,7 +350,7 @@ export const TaskEditModal: React.FC<Props> = ({
                 <select
                   value={selectedTechId}
                   onChange={(e) => setSelectedTechId(e.target.value)}
-                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                  className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
                 >
                   {technicians.length === 0 ? (
                     <option value="">لا يوجد فنيون مسجلون</option>
@@ -366,12 +366,12 @@ export const TaskEditModal: React.FC<Props> = ({
             )}
 
             {canPromptStatusReset && (
-              <label className="flex items-start gap-2 pt-1.5 border-t border-slate-800/80 cursor-pointer text-xs text-amber-300">
+              <label className="flex items-start gap-2 pt-1.5 border-t border-slate-200 dark:border-slate-800/80 cursor-pointer text-xs text-amber-800 dark:text-amber-300">
                 <input
                   type="checkbox"
                   checked={resetToPendingOnTechChange}
                   onChange={(e) => setResetToPendingOnTechChange(e.target.checked)}
-                  className="mt-0.5 rounded border-slate-600 bg-slate-900 text-emerald-500 focus:ring-emerald-500"
+                  className="mt-0.5 rounded border-slate-400 dark:border-slate-600 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-500 focus:ring-emerald-500"
                 />
                 <span>
                   إرجاع المهمة إلى حالة <strong>(بانتظار القبول)</strong> لإرسال تنبيه فوري للفني الجديد وإخفاء المعلومات حتى يقبلها
@@ -382,16 +382,16 @@ export const TaskEditModal: React.FC<Props> = ({
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-bold text-slate-200 mb-1.5">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
               ملاحظات المهمة:
             </label>
             <div className="relative">
-              <FileText className="w-4 h-4 absolute right-3 top-3 text-slate-500 pointer-events-none" />
+              <FileText className="w-4 h-4 absolute right-3 top-3 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full pr-9 pl-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full pr-9 pl-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 resize-none"
                 placeholder="تفاصيل العطل أو العنوان أو الملاحظات..."
               />
             </div>
@@ -402,7 +402,7 @@ export const TaskEditModal: React.FC<Props> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-semibold transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
             >
               إلغاء
             </button>
@@ -412,8 +412,8 @@ export const TaskEditModal: React.FC<Props> = ({
               disabled={submitting}
               className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-lg disabled:opacity-50 ${
                 mode === 'edit'
-                  ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-950/40'
-                  : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/40'
+                  ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20 dark:shadow-blue-950/40'
+                  : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20 dark:shadow-emerald-950/40'
               }`}
             >
               {mode === 'edit' ? (

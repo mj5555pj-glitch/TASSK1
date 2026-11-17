@@ -3,10 +3,14 @@ import { User } from '../types';
 import { Wifi, Lock, User as UserIcon, ArrowLeft, Clock, PhoneCall, Calendar, ShieldAlert } from 'lucide-react';
 import { DEFAULT_USERS } from '../utils/storage';
 import { PWAInstallButton } from './PWAInstallButton';
+import { ThemeToggleButton } from './ThemeToggleButton';
+import { AppTheme } from '../utils/theme';
 
 interface Props {
   users: User[];
   onLogin: (user: User) => void;
+  theme: AppTheme;
+  onToggleTheme: () => void;
 }
 
 // Convert Eastern Arabic & Persian numerals (٠-٩) to standard ASCII (0-9)
@@ -15,7 +19,7 @@ function normalizeDigits(str: string): string {
             .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776));
 }
 
-export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
+export const LoginScreen: React.FC<Props> = ({ users, onLogin, theme, onToggleTheme }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -87,42 +91,47 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-8 relative overflow-hidden" dir="rtl">
-      {/* Top action: Install app banner */}
-      <div className="absolute top-4 left-4 z-20">
-        <PWAInstallButton variant="card" />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-center items-center px-4 py-8 relative overflow-hidden transition-colors duration-200" dir="rtl">
+      {/* Top actions: Theme toggle + Install app banner */}
+      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
+        <div className="pointer-events-auto">
+          <ThemeToggleButton theme={theme} onToggle={onToggleTheme} variant="card" />
+        </div>
+        <div className="pointer-events-auto">
+          <PWAInstallButton variant="card" />
+        </div>
       </div>
 
       {/* Background ambient lighting */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md relative z-10 mt-8 sm:mt-0">
         {/* Header Branding */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/20 mb-4 ring-4 ring-blue-500/10">
             <Wifi className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
             منظومة مهام صيانة الإنترنت
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             بوابة تسجيل الدخول الموحدة للمديرين وفنيي الصيانة الميدانيين
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-8 shadow-xl dark:shadow-2xl backdrop-blur-md">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-300 font-medium flex items-start gap-2">
-                <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+              <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl text-xs text-rose-700 dark:text-rose-300 font-medium flex items-start gap-2">
+                <ShieldAlert className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 اسم المستخدم
               </label>
               <div className="relative">
@@ -134,7 +143,7 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="أدخل اسم المستخدم"
-                  className="w-full pr-10 pl-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  className="w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   autoComplete="username"
                   required
                 />
@@ -142,7 +151,7 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 كلمة المرور
               </label>
               <div className="relative">
@@ -154,7 +163,7 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pr-10 pl-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  className="w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   autoComplete="current-password"
                   required
                 />
@@ -172,17 +181,17 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin }) => {
         </div>
 
         {/* Feature Highlights - 3 columns on tablet/desktop, stacked or 3-box on mobile */}
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-[11px] text-slate-400">
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0">
-            <Clock className="w-4 h-4 sm:mx-auto sm:mb-1 text-blue-400 shrink-0" />
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-[11px] text-slate-600 dark:text-slate-400">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0 shadow-xs dark:shadow-none">
+            <Clock className="w-4 h-4 sm:mx-auto sm:mb-1 text-blue-600 dark:text-blue-400 shrink-0" />
             <span>توثيق وقت الإرسال والقبول والإنجاز</span>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0">
-            <PhoneCall className="w-4 h-4 sm:mx-auto sm:mb-1 text-emerald-400 shrink-0" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0 shadow-xs dark:shadow-none">
+            <PhoneCall className="w-4 h-4 sm:mx-auto sm:mb-1 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>اتصال ورسائل واتساب مسبقة الصياغة</span>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0">
-            <Calendar className="w-4 h-4 sm:mx-auto sm:mb-1 text-indigo-400 shrink-0" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 flex sm:flex-col items-center justify-center gap-2 sm:gap-0 shadow-xs dark:shadow-none">
+            <Calendar className="w-4 h-4 sm:mx-auto sm:mb-1 text-indigo-600 dark:text-indigo-400 shrink-0" />
             <span>حفظ السجلات لأسبوع وحذف تلقائي</span>
           </div>
         </div>
