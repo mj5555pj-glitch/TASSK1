@@ -606,7 +606,7 @@ export default function App() {
     : [];
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200" dir="rtl">
+    <div className="min-h-screen w-full max-w-full overflow-x-clip bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200" dir="rtl">
       {/* Navbar with Page Switcher & Technician Management */}
       <Navbar
         currentUser={currentUser}
@@ -624,7 +624,7 @@ export default function App() {
       />
 
       {/* Main Pages View */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-x-hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-x-clip">
         {currentUser.role === 'technician' ? (
           <TechnicianView
             technician={currentUser}

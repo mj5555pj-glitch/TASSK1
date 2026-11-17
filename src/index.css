@@ -1,11 +1,39 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --font-sans: 'Changa', 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-weight-thin: 800;
+  --font-weight-extralight: 800;
+  --font-weight-light: 800;
+  --font-weight-normal: 800;
+  --font-weight-medium: 900;
+  --font-weight-semibold: 900;
+  --font-weight-bold: 900;
+  --font-weight-extrabold: 900;
+  --font-weight-black: 900;
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.35;
+  --text-3xl: 2.125rem;
+  --text-3xl--line-height: 1.25;
+}
+
 @layer base {
   html, body, #root {
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
   }
@@ -15,12 +43,43 @@
   }
 
   body {
-    font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    font-weight: 900;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 0.35px currentColor;
   }
-  
-  code, kbd, samp, pre {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+
+  input, textarea, select, option, button, label {
+    font-weight: 900;
   }
+
+  input::placeholder,
+  textarea::placeholder {
+    font-weight: 800;
+    -webkit-text-stroke: 0px;
+  }
+
+  code, kbd, samp, pre, .font-mono {
+    font-family: var(--font-mono);
+    font-weight: 800;
+  }
+}
+
+[class*="text-[9px]"] {
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+[class*="text-[10px]"] {
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+[class*="text-[11px]"] {
+  font-size: 13.5px;
+  line-height: 1.45;
 }
 
 /* Custom sleek scrollbar */

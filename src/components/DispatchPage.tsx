@@ -7,12 +7,9 @@ import {
   Activity, 
   HelpCircle, 
   CheckCircle2, 
-  Database, 
   User as UserIcon, 
   Phone, 
-  FileText, 
-  Calendar,
-  MessageSquare
+  FileText
 } from 'lucide-react';
 
 interface Props {
@@ -32,7 +29,6 @@ interface Props {
 export const DispatchPage: React.FC<Props> = ({
   technicians,
   onAddTask,
-  onOpenWhatsAppTemplate,
 }) => {
   const [selectedTaskType, setSelectedTaskType] = useState<AllowedTaskType>('صيانة');
   const [subscriberName, setSubscriberName] = useState('');
@@ -106,40 +102,6 @@ export const DispatchPage: React.FC<Props> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6" dir="rtl">
-      {/* Page Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 transition-colors">
-        <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white">صفحة إرسال المهام</h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-              <Database className="w-3.5 h-3.5" />
-              <span>فايبر بيس (Firebase Firestore)</span>
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            تعبئة بطاقة إرسال المهمة وتوجيهها للفني مع تسجيل وقت الإرسال تلقائياً
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {onOpenWhatsAppTemplate && (
-            <button
-              type="button"
-              onClick={onOpenWhatsAppTemplate}
-              className="text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:text-white bg-emerald-50 dark:bg-emerald-600/15 hover:bg-emerald-600 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-              title="تعديل نص رسالة الواتساب الموجهة للمشترك وإضافة تفاصيل دائمة"
-            >
-              <MessageSquare className="w-4 h-4 shrink-0" />
-              <span>تعديل رسالة الواتساب للمشترك</span>
-            </button>
-          )}
-          <div className="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/80 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-            <span>مدة الاحتفاظ بالسجل: <strong className="text-slate-900 dark:text-slate-200">أسبوع كامل (7 أيام)</strong></span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Dispatch Card */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-8 shadow-sm dark:shadow-2xl transition-colors">
         {successToast && (

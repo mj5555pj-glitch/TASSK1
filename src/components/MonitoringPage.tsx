@@ -20,8 +20,6 @@ import {
   Trash2, 
   Search, 
   CheckCircle2, 
-  Database,
-  Radio,
   AlertTriangle,
   Users,
   PauseCircle,
@@ -127,22 +125,6 @@ export const MonitoringPage: React.FC<Props> = ({
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 transition-colors">
-        <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white">صفحة متابعة المهام الجارية والمعلقة</h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-              <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-600 dark:text-emerald-400" />
-              <span>مزامنة فايبر بيس حية</span>
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            متابعة فورية للمهام قيد الانتظار والمهام الجاري العمل عليها مع توثيق الأوقات الحية وتنبيهات التأخير
-          </p>
-        </div>
-      </div>
-
       {/* تنبيه تلقائي عاجل للمدير عند وجود طلبات لم تقبل بعد 15 دقيقة */}
       {overdueTasks.length > 0 && (
         <div className="bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-500/60 rounded-2xl p-3.5 sm:p-5 shadow-md dark:shadow-xl dark:shadow-rose-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 animate-in fade-in">

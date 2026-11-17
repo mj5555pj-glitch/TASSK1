@@ -96,51 +96,40 @@ export const ArchivePage: React.FC<Props> = ({
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 transition-colors">
-        <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white">سجل وأرشيف المهام المكتملة</h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{completedTasks.length} مهمة منجزة</span>
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            سجل المهام المنفذة مع توثيق الأوقات المستغرقة وسياسة الحفظ الأسبوعية
-          </p>
+      {/* Retention Policy Banner & Quick Actions */}
+      <div className="p-4 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-700 dark:text-slate-300 shadow-xs dark:shadow-none">
+        <div className="flex items-center gap-2.5">
+          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+          <span>
+            <strong className="text-slate-900 dark:text-white">سياسة الحفظ الأسبوعية:</strong> يتم الاحتفاظ بكافة سجلات المهام لمدة <strong className="text-slate-900 dark:text-white">أسبوع كامل (7 أيام)</strong> ثم يتم حذفها تلقائياً من فايبر بيس.
+          </span>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto shrink-0">
+          <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>{completedTasks.length} منجزة</span>
+          </span>
+
           <button
             type="button"
             onClick={handlePurge}
             disabled={isPurging}
-            className="flex-1 sm:flex-none px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            className="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             title="فحص وحذف المهام الأقدم من 7 أيام"
           >
-            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
             <span className="truncate">{isPurging ? 'جاري الفحص...' : 'فحص سجلات 7 أيام'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleExportCSV}
-            className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>تصدير CSV</span>
           </button>
-        </div>
-      </div>
-
-      {/* Retention Policy Banner */}
-      <div className="p-4 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 shadow-xs dark:shadow-none">
-        <div className="flex items-center gap-2.5">
-          <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-          <span>
-            <strong className="text-slate-900 dark:text-white">سياسة الحفظ الأسبوعية:</strong> يتم الاحتفاظ بكافة سجلات المهام لمدة <strong className="text-slate-900 dark:text-white">أسبوع كامل (7 أيام)</strong> ثم يتم حذفها تلقائياً من فايبر بيس.
-          </span>
         </div>
       </div>
 
