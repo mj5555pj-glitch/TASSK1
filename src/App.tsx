@@ -50,6 +50,7 @@ import { ManagerAccountModal } from './components/ManagerAccountModal';
 import { WhatsAppTemplateModal } from './components/WhatsAppTemplateModal';
 import { DeductionsModal } from './components/DeductionsModal';
 import { TaskEditPayload } from './components/TaskEditModal';
+import { OfflineAlertCard } from './components/OfflineAlertCard';
 import { AppTheme, getStoredTheme, applyThemeToDocument } from './utils/theme';
 
 export default function App() {
@@ -573,16 +574,24 @@ export default function App() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center text-slate-700 dark:text-slate-300 font-sans transition-colors duration-200" dir="rtl">
-        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
-        <div className="text-sm font-semibold">جاري الاتصال بقاعدة بيانات فايبر بيس (Firebase Firestore)...</div>
-        <div className="text-xs text-slate-500 mt-1">تجهيز منظومة الصيانة وتحديث السجلات</div>
-      </div>
+      <>
+        <OfflineAlertCard />
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center text-slate-700 dark:text-slate-300 font-sans transition-colors duration-200" dir="rtl">
+          <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
+          <div className="text-sm font-semibold">جاري الاتصال بقاعدة بيانات فايبر بيس (Firebase Firestore)...</div>
+          <div className="text-xs text-slate-500 mt-1">تجهيز منظومة الصيانة وتحديث السجلات</div>
+        </div>
+      </>
     );
   }
 
   if (!currentUser) {
-    return <LoginScreen users={users} onLogin={handleLogin} theme={theme} onToggleTheme={handleToggleTheme} />;
+    return (
+      <>
+        <OfflineAlertCard />
+        <LoginScreen users={users} onLogin={handleLogin} theme={theme} onToggleTheme={handleToggleTheme} />
+      </>
+    );
   }
 
   const technicians = users.filter((u) => u.role === 'technician');
@@ -607,6 +616,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-clip bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200" dir="rtl">
+      <OfflineAlertCard />
       {/* Navbar with Page Switcher & Technician Management */}
       <Navbar
         currentUser={currentUser}
