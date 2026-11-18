@@ -19,6 +19,7 @@ import firebaseConfig from '../firebase-applet-config.json';
 import { MaintenanceTask, AllowedTaskType, DeductionSettings, DeductionRecord, DeductionReason } from './types';
 import { SEVEN_DAYS_MS, isTaskOlderThanOneWeek, calculateDurationSeconds, formatDurationArabic } from './utils/time';
 import { DEFAULT_DEDUCTION_SETTINGS } from './utils/deductions';
+import { isDemoTechnicianUser } from './utils/storage';
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
@@ -226,7 +227,29 @@ export async function addTaskToFirebase(taskData: {
 const USERS_COLLECTION = 'users';
 
 /**
- * Subscribe to users / technicians collection in Firestore with robust fallback
+ * Permanently purge any leftover demo technician accounts from Firestore
+ */
+export async function purgeAllDemoTechnicians(): Promise<number> {
+  let purgedCount = 0;
+  try {
+    const usersRef = collection(db, USERS_COLLECTION);
+    const snapshot = await getDocs(usersRef);
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data() as import('./types').User;
+      const candidate = { ...data, id: docSnap.id };
+      if (isDemoTechnicianUser(candidate)) {
+        await deleteDoc(doc(db, USERS_COLLECTION, docSnap.id));
+        purgedCount++;
+      }
+    }
+  } catch (err) {
+    console.warn('Error purging demo technicians:', err);
+  }
+  return purgedCount;
+}
+
+/**
+ * Subscribe to users / technicians collection in Firestore with automatic demo technician cleanup
  */
 export function subscribeToFirestoreUsers(
   onUpdate: (users: import('./types').User[]) => void,
@@ -240,30 +263,39 @@ export function subscribeToFirestoreUsers(
       const { DEFAULT_USERS } = await import('./utils/storage');
 
       if (snapshot.empty) {
-        // Immediately provide default users so login NEVER fails
+        // Seed manager bootstrap account only (no demo technicians)
         onUpdate(DEFAULT_USERS);
 
-        // Seed default users to Firestore
         try {
           for (const u of DEFAULT_USERS) {
             await setDoc(doc(db, USERS_COLLECTION, u.id), u);
           }
         } catch (e) {
-          console.warn('Could not seed default users to Firestore:', e);
+          console.warn('Could not seed default manager to Firestore:', e);
         }
         return;
       }
 
       const users: import('./types').User[] = [];
       snapshot.forEach((docSnap) => {
-        users.push(docSnap.data() as import('./types').User);
+        const userData = {
+          ...(docSnap.data() as import('./types').User),
+          id: docSnap.id,
+        };
+
+        // Permanently exclude and clean up any leftover demo technicians
+        if (isDemoTechnicianUser(userData)) {
+          deleteDoc(doc(db, USERS_COLLECTION, docSnap.id)).catch(() => {});
+          return;
+        }
+
+        users.push(userData);
       });
 
       // Always guarantee at least one manager account exists
       const hasManager = users.some((u) => u.role === 'manager' || u.id === 'user_admin');
       if (!hasManager && DEFAULT_USERS.length > 0) {
         users.unshift(DEFAULT_USERS[0]);
-        // Also persist manager back to Firestore
         setDoc(doc(db, USERS_COLLECTION, DEFAULT_USERS[0].id), DEFAULT_USERS[0]).catch(() => {});
       }
 

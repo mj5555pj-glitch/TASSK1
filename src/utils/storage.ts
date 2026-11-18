@@ -6,7 +6,19 @@ const TASKS_STORAGE_KEY = 'isp_maintenance_tasks_v2';
 const CLEANUP_LOGS_KEY = 'isp_cleanup_logs_v2';
 const CURRENT_USER_KEY = 'isp_current_user_v2';
 
-// Seed default users
+export const DEMO_TECHNICIAN_IDS = new Set(['user_tech1', 'user_tech2', 'user_tech3']);
+export const DEMO_TECHNICIAN_USERNAMES = new Set(['tech1', 'tech2', 'tech3']);
+export const DEMO_TECHNICIAN_NAMES = new Set(['عمر الصالح', 'يوسف النجار', 'كمال حسن']);
+
+export function isDemoTechnicianUser(user: Partial<User> | null | undefined): boolean {
+  if (!user || user.role === 'manager') return false;
+  if (user.id && DEMO_TECHNICIAN_IDS.has(user.id)) return true;
+  if (user.username && DEMO_TECHNICIAN_USERNAMES.has(user.username.trim().toLowerCase())) return true;
+  if (user.fullName && DEMO_TECHNICIAN_NAMES.has(user.fullName.trim())) return true;
+  return false;
+}
+
+// Seed default users (Manager bootstrap account only — no demo technicians)
 export const DEFAULT_USERS: User[] = [
   {
     id: 'user_admin',
@@ -16,36 +28,6 @@ export const DEFAULT_USERS: User[] = [
     role: 'manager',
     phone: '07701234567',
     specialty: 'إدارة العمليات وتوجيه الفنيين',
-    status: 'available',
-  },
-  {
-    id: 'user_tech1',
-    username: 'tech1',
-    password: '123',
-    fullName: 'عمر الصالح',
-    role: 'technician',
-    phone: '07712345678',
-    specialty: 'ألياف ضوئية وكوابل فايبر FTTH',
-    status: 'available',
-  },
-  {
-    id: 'user_tech2',
-    username: 'tech2',
-    password: '123',
-    fullName: 'يوسف النجار',
-    role: 'technician',
-    phone: '07723456789',
-    specialty: 'برمجة راوترات وتوزيع شبكات Wi-Fi',
-    status: 'available',
-  },
-  {
-    id: 'user_tech3',
-    username: 'tech3',
-    password: '123',
-    fullName: 'كمال حسن',
-    role: 'technician',
-    phone: '07734567890',
-    specialty: 'صيانة أبراج وبث إشارة نانوستيشن',
     status: 'available',
   },
 ];
@@ -106,7 +88,12 @@ export function getUsers(): User[] {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
       return DEFAULT_USERS;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw) as User[];
+    const cleaned = parsed.filter((u) => !isDemoTechnicianUser(u));
+    if (cleaned.length !== parsed.length) {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(cleaned));
+    }
+    return cleaned.length > 0 ? cleaned : DEFAULT_USERS;
   } catch {
     return DEFAULT_USERS;
   }
@@ -119,7 +106,12 @@ export function getCurrentUser(): User | null {
   try {
     const raw = localStorage.getItem(CURRENT_USER_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw) as User;
+    if (isDemoTechnicianUser(parsed)) {
+      localStorage.removeItem(CURRENT_USER_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

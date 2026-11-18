@@ -104,7 +104,7 @@ export const PWAInstallButton: React.FC<Props> = ({ variant = 'navbar' }) => {
                 </div>
                 <ol className="list-decimal list-inside space-y-1 text-slate-700 dark:text-slate-300 pr-1 leading-relaxed">
                   <li>انقر على أيقونة التثبيت <strong className="text-slate-900 dark:text-white">💻 (تثبيت التطبيق)</strong> الموجودة في شريط عنوان المتصفح بالأعلى.</li>
-                  <li>أو افتح قائمة المتصفح (⋮) ثم اختر <strong className="text-slate-900 dark:text-white">"تثبيت منظومة مهام صيانة الإنترنت"</strong>.</li>
+                  <li>أو افتح قائمة المتصفح (⋮) ثم اختر <strong className="text-slate-900 dark:text-white">"تثبيت متابعه التاسكات (هشام)"</strong>.</li>
                   <li>سيظهر التطبيق كأيقونة مستقلة على سطح المكتب وقائمة ابدأ.</li>
                 </ol>
               </div>

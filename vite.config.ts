@@ -14,8 +14,8 @@ export default defineConfig(() => {
         includeAssets: ['apple-touch-icon.png', 'icon.svg'],
         manifest: {
           id: '/',
-          name: 'منظومة مهام صيانة الإنترنت',
-          short_name: 'صيانة نت',
+          name: 'متابعه التاسكات (هشام)',
+          short_name: 'متابعه التاسكات (هشام)',
           description: 'منظومة إرسال وتوجيه مهام صيانة شبكات الإنترنت الميدانية للفنيين',
           theme_color: '#0f172a',
           background_color: '#020617',

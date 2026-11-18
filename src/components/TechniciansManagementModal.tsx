@@ -225,7 +225,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="مثال: عمر الصالح"
+                    placeholder="أدخل اسم الفني الكامل"
                     className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -257,7 +257,7 @@ export const TechniciansManagementModal: React.FC<Props> = ({
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="مثال: tech1 أو omar"
+                      placeholder="مثال: ali_tech"
                       dir="ltr"
                       className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 text-right font-mono focus:outline-none focus:border-blue-500"
                     />

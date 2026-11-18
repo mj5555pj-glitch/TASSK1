@@ -57,16 +57,10 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin, theme, onToggleTh
       found = pool.find((u) => u.fullName.toLowerCase() === rawUser);
     }
 
-    // 4. Common Arabic & English aliases
+    // 4. Manager aliases
     if (!found) {
       if (['admin', 'مدير', 'المدير', 'manager', 'احمد', 'أحمد', 'المهندس'].some(a => rawUser.includes(a))) {
         found = pool.find((u) => u.role === 'manager' || u.username === 'admin');
-      } else if (['tech1', 'فني 1', 'فني1', 'عمر'].some(a => rawUser.includes(a))) {
-        found = pool.find((u) => u.username === 'tech1');
-      } else if (['tech2', 'فني 2', 'فني2', 'يوسف'].some(a => rawUser.includes(a))) {
-        found = pool.find((u) => u.username === 'tech2');
-      } else if (['tech3', 'فني 3', 'فني3', 'كمال'].some(a => rawUser.includes(a))) {
-        found = pool.find((u) => u.username === 'tech3');
       }
     }
 
@@ -113,7 +107,7 @@ export const LoginScreen: React.FC<Props> = ({ users, onLogin, theme, onToggleTh
             <Wifi className="w-8 h-8" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
-            منظومة مهام صيانة الإنترنت
+            متابعه التاسكات (هشام)
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             بوابة تسجيل الدخول الموحدة للمديرين وفنيي الصيانة الميدانيين

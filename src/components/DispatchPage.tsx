@@ -59,6 +59,11 @@ export const DispatchPage: React.FC<Props> = ({
       ? { id: 'all', fullName: 'متاحة للكل (يمكن لأي فني نسبها لنفسه)' }
       : (technicians.find((t) => t.id === assignedTechId) || technicians[0]);
 
+    if (!assignedTech) {
+      setError('لا يوجد فنيين مسجلين حالياً. يرجى إضافة فني من الإعدادات ← الفنيين أو اختيار إرسال المهمة للكل.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       await onAddTask({
@@ -262,17 +267,23 @@ export const DispatchPage: React.FC<Props> = ({
                 <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   اختر الفني المكلف من القائمة:
                 </label>
-                <select
-                  value={assignedTechId}
-                  onChange={(e) => setAssignedTechId(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
-                >
-                  {technicians.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      الفني: {t.fullName} — {t.specialty || 'فني صيانة شبكات'} (هاتف: {t.phone})
-                    </option>
-                  ))}
-                </select>
+                {technicians.length === 0 ? (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-300 font-semibold">
+                    لا يوجد فنيين مضافين حالياً. يمكنك إضافة فنيين من قائمة «الإعدادات ← الفنيين» أو اختيار الإرسال للكل.
+                  </div>
+                ) : (
+                  <select
+                    value={assignedTechId}
+                    onChange={(e) => setAssignedTechId(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
+                  >
+                    {technicians.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        الفني: {t.fullName} — {t.specialty || 'فني صيانة شبكات'} (هاتف: {t.phone})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
           </div>

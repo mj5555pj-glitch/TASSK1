@@ -18,6 +18,7 @@ import {
   purgeExpiredTasksFromFirebase,
   reassignTaskToAllInFirebase,
   purgeAllDemoTasks,
+  purgeAllDemoTechnicians,
   subscribeToWhatsAppTemplate,
   saveWhatsAppTemplateToFirebase,
   subscribeToDeductionSettings,
@@ -94,8 +95,9 @@ export default function App() {
 
   // Initialize users & session & live Firestore listeners
   useEffect(() => {
-    // Purge any remaining demo tasks immediately
+    // Purge any remaining demo tasks and demo technicians immediately
     purgeAllDemoTasks().catch(() => {});
+    purgeAllDemoTechnicians().catch(() => {});
 
     const localUsers = getUsers();
     setUsers(localUsers);

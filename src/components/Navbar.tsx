@@ -8,7 +8,6 @@ import {
   Send, 
   Activity, 
   Archive, 
-  Database,
   MessageSquare,
   Wallet,
   Settings,
@@ -175,45 +174,34 @@ export const Navbar: React.FC<Props> = ({
     >
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 relative">
         {/* Main Header Bar */}
-        <div className="h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
-          {/* Zone 1: Wordmark */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink min-w-0">
-            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 shrink-0">
-              <Wifi className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-2.5 lg:gap-4">
+          {/* Zone 1: Integrated App Logo & Name */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink min-w-0 sm:shrink-0">
+            <div className="flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 shrink-0">
+              <Wifi className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white truncate max-w-[110px] sm:max-w-none sm:text-lg">
-                  <span className="sm:hidden">صيانة نت</span>
-                  <span className="hidden sm:inline">منظومة مهام صيانة الإنترنت</span>
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-500/20 shrink-0">
-                  <Database className="w-3 h-3" />
-                  <span>فايبر بيس</span>
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden xl:block">
-                إرسال ومتابعة مهام الصيانة للفنيين وتوثيق الأوقات
-              </p>
-            </div>
+            <span className="text-[12px] leading-tight sm:text-sm lg:text-base font-black tracking-tight text-slate-900 dark:text-white truncate whitespace-nowrap">
+              متابعه التاسكات (هشام)
+            </span>
           </div>
 
-          {/* Navigation Links for Manager */}
+          {/* Integrated Navigation Links for Manager (Single Unified Bar on Computer/Tablet) */}
           {isManager && (
-            <nav className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-950/60 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+            <nav className="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-950/60 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs shrink-0">
               <button
                 onClick={() => {
                   setSettingsOpen(false);
                   onPageChange('dispatch');
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                   currentPage === 'dispatch'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800'
                 }`}
               >
-                <Send className="w-3.5 h-3.5" />
-                <span>صفحة إرسال المهام</span>
+                <Send className="w-3.5 h-3.5 shrink-0" />
+                <span className="lg:hidden">إرسال</span>
+                <span className="hidden lg:inline">إرسال المهام</span>
               </button>
 
               <button
@@ -221,14 +209,16 @@ export const Navbar: React.FC<Props> = ({
                   setSettingsOpen(false);
                   onPageChange('monitoring');
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                   currentPage === 'monitoring'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800'
                 }`}
               >
-                <Activity className={`w-3.5 h-3.5 ${currentPage === 'monitoring' ? 'text-amber-200' : 'text-amber-600 dark:text-amber-400'}`} />
-                <span>متابعة المهام الجارية والمعلقة</span>
+                <Activity className={`w-3.5 h-3.5 shrink-0 ${currentPage === 'monitoring' ? 'text-amber-200' : 'text-amber-600 dark:text-amber-400'}`} />
+                <span className="lg:hidden">المتابعة</span>
+                <span className="hidden lg:inline xl:hidden">المتابعة</span>
+                <span className="hidden xl:inline">متابعة المهام</span>
                 {(pendingCount > 0 || inProgressCount > 0) && (
                   <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-slate-950 font-black">
                     {pendingCount + inProgressCount}
@@ -241,14 +231,15 @@ export const Navbar: React.FC<Props> = ({
                   setSettingsOpen(false);
                   onPageChange('archive');
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                   currentPage === 'archive'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800'
                 }`}
               >
-                <Archive className="w-3.5 h-3.5" />
-                <span>سجل الأسبوع والأرشيف</span>
+                <Archive className="w-3.5 h-3.5 shrink-0" />
+                <span className="xl:hidden">الأرشيف</span>
+                <span className="hidden xl:inline">السجل والأرشيف</span>
               </button>
 
               {/* Settings Dropdown Card Trigger */}
@@ -293,7 +284,7 @@ export const Navbar: React.FC<Props> = ({
                 title="تعديل بيانات حساب المدير (الاسم، اسم المستخدم، كلمة المرور، الهاتف)"
               >
                 <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform shrink-0" />
-                <span className="text-slate-900 dark:text-white font-medium hidden sm:inline max-w-[100px] truncate">{currentUser.fullName}</span>
+                <span className="text-slate-900 dark:text-white font-medium hidden lg:inline max-w-[100px] truncate">{currentUser.fullName}</span>
                 <span className="text-[10px] text-amber-800 dark:text-amber-300 bg-amber-200/70 dark:bg-amber-500/20 px-1 py-0.2 rounded border border-amber-300 dark:border-amber-500/30 shrink-0 font-semibold">حسابي</span>
               </button>
             ) : (
@@ -316,14 +307,14 @@ export const Navbar: React.FC<Props> = ({
               title="تسجيل الخروج"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">خروج</span>
+              <span className="hidden md:inline">خروج</span>
             </button>
           </div>
         </div>
 
         {/* Mobile Sub-Navigation Bar for Manager - 4 clean columns */}
         {isManager && (
-          <div className="grid grid-cols-4 gap-1.5 md:hidden border-t border-slate-200 dark:border-slate-800/80 py-1.5 text-[11px] w-full">
+          <div className="grid grid-cols-4 gap-1.5 sm:hidden border-t border-slate-200 dark:border-slate-800/80 py-1.5 text-[11px] w-full">
             <button
               onClick={() => {
                 setSettingsOpen(false);
@@ -386,7 +377,7 @@ export const Navbar: React.FC<Props> = ({
 
         {/* Mobile Floating Settings Card */}
         {isManager && settingsOpen && hasSettingsItems && (
-          <div className="md:hidden absolute top-full left-2.5 right-2.5 mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="sm:hidden absolute top-full left-2.5 right-2.5 mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
             {renderSettingsMenuItems()}
           </div>
         )}
